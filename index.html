@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AIUE BATTLE: ULTIMATE V3</title>
+    <title>AIUE BATTLE: ULTIMATE V4</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;900&display=swap" rel="stylesheet">
@@ -33,12 +33,22 @@
         .screen { display: none; flex-direction: column; gap: 15px; }
         .active { display: flex; }
 
+        /* デザインパネル */
         .panel {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid var(--neon-cyan);
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+            position: relative;
+        }
+
+        .room-display {
+            font-size: 0.8rem;
+            color: var(--neon-cyan);
+            text-align: right;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
         }
 
         .genre-badge {
@@ -53,11 +63,6 @@
             box-shadow: 0 0 10px var(--neon-pink);
         }
 
-        input {
-            width: 100%; padding: 12px; background: #000; border: 1px solid var(--neon-cyan);
-            color: #fff; margin-bottom: 10px; box-sizing: border-box; font-size: 1rem;
-        }
-
         button {
             background: transparent; color: var(--neon-cyan); border: 2px solid var(--neon-cyan);
             padding: 15px; font-weight: bold; cursor: pointer; font-size: 1.1rem;
@@ -66,14 +71,17 @@
         button:active { background: var(--neon-cyan); color: #000; }
         button:disabled { border-color: #444; color: #444; opacity: 0.5; }
 
+        /* あいうえお表 (v4: 伸ばし棒追加) */
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
         .key {
-            padding: 15px 0; font-size: 1.2rem; background: #111; border: 1px solid #333;
+            padding: 12px 0; font-size: 1.2rem; background: #111; border: 1px solid #333;
             color: #ccc; text-align: center; border-radius: 4px;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 50px;
         }
         .key.hit { background: var(--neon-pink); color: white; border-color: white; box-shadow: 0 0 10px var(--neon-pink); }
         .key.miss { opacity: 0.2; }
-        .key.active-key { border-color: var(--neon-cyan); color: var(--neon-cyan); background: #1a1a1a; }
+        .key.active-key { border-color: var(--neon-cyan); color: var(--neon-cyan); background: #1a1a1a; box-shadow: inset 0 0 5px var(--neon-cyan); }
 
         #player-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .player-card {
@@ -86,7 +94,7 @@
         .input-display {
             background: #000; border-bottom: 3px solid var(--neon-pink);
             height: 50px; font-size: 1.8rem; display: flex; justify-content: center; align-items: center;
-            margin-bottom: 15px; letter-spacing: 4px;
+            margin-bottom: 15px; letter-spacing: 4px; color: var(--neon-yellow);
         }
 
         #lobby-list { list-style: none; padding: 0; text-align: left; }
@@ -94,11 +102,14 @@
 
         .version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 0.7rem; color: #444; }
 
+        /* あばく用モーダル調整 */
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); display: none; flex-direction: column;
-            justify-content: center; align-items: center; z-index: 1000; padding: 20px; box-sizing: border-box;
+            justify-content: flex-start; align-items: center; z-index: 1000; padding: 20px; box-sizing: border-box;
+            overflow-y: auto;
         }
+        .modal-content { width: 100%; max-width: 450px; padding-top: 20px; }
 
         .shake { animation: shake-anim 0.4s ease-in-out; }
         @keyframes shake-anim {
@@ -111,7 +122,7 @@
 <body id="main-body">
 
 <div id="app">
-    <h1 style="text-align: center; color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); margin: 20px 0;">NEON ULTIMATE</h1>
+    <h1 style="text-align: center; color: var(--neon-cyan); text-shadow: 0 0 15px var(--neon-cyan); margin: 15px 0;">NEON ULTIMATE</h1>
 
     <!-- 1. ログイン -->
     <div id="login-screen" class="screen active">
@@ -124,8 +135,9 @@
 
     <!-- 2. ロビー -->
     <div id="lobby-screen" class="screen">
+        <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
         <div class="panel" style="text-align:center">
-            <h3 style="color:var(--neon-pink)">WAITING LOBBY</h3>
+            <h3 style="color:var(--neon-pink); margin-top:0;">WAITING LOBBY</h3>
             <p>参加人数: <span id="player-count">0</span> / 10</p>
             <ul id="lobby-list"></ul>
             <button id="start-btn" onclick="startGameSession()" style="width:100%; margin-top:20px;">START GAME</button>
@@ -134,9 +146,10 @@
 
     <!-- 3. セットアップ -->
     <div id="setup-screen" class="screen">
+        <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
         <div class="panel" style="text-align:center">
             <div id="genre-display" class="genre-badge">---</div>
-            <p style="font-size:0.9rem; margin:10px 0;">このお題に合う単語を入力（最大8文字）</p>
+            <p style="font-size:0.9rem; margin:10px 0;">単語を入力（最大8文字）</p>
             <div class="input-display" id="setup-word-view"></div>
             <div class="grid" id="setup-kb"></div>
             <div style="display:flex; gap:10px; margin-top:15px;">
@@ -149,6 +162,7 @@
 
     <!-- 4. バトル -->
     <div id="battle-screen" class="screen">
+        <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
         <div id="battle-genre" class="genre-badge" style="text-align:center; align-self:center">---</div>
         <div id="player-list"></div>
         <div id="turn-msg" style="text-align:center; color:var(--neon-yellow); font-weight:bold; margin:10px 0;"></div>
@@ -157,19 +171,24 @@
         <button id="reset-btn" style="display:none; margin-top:15px;" onclick="resetGame()">もう一度遊ぶ</button>
     </div>
 
-    <div class="version-tag">v3.0</div>
+    <div class="version-tag">v4.0</div>
 </div>
 
+<!-- あばくモーダル -->
 <div id="expose-modal" class="modal">
-    <h2 style="color:var(--neon-pink)">EXPOSE SYSTEM</h2>
-    <p>誰の単語をあばく？</p>
-    <select id="target-select" style="width:100%; padding:12px; background:#222; color:#fff; border:1px solid var(--neon-cyan); margin-bottom:15px;"></select>
-    <div class="input-display" id="expose-word-view"></div>
-    <div class="grid" id="expose-kb"></div>
-    <div style="display:flex; gap:10px; width:100%; margin-top:20px;">
-        <button onclick="closeExposeModal()" style="flex:1">やめる</button>
-        <button onclick="backspace('expose')" style="flex:1">削除</button>
-        <button style="border-color:var(--neon-pink); color:var(--neon-pink); flex:1" onclick="executeExpose()">FIRE!</button>
+    <div class="modal-content">
+        <h2 style="color:var(--neon-pink); text-align:center; margin-top:0;">EXPOSE SYSTEM</h2>
+        <div class="panel" style="border-color:var(--neon-pink); margin-bottom:15px;">
+            <p style="margin-top:0; font-size:0.8rem;">ターゲットを選択:</p>
+            <select id="target-select" style="width:100%; padding:12px; background:#222; color:#fff; border:1px solid var(--neon-pink); font-size:1.1rem;"></select>
+        </div>
+        <div class="input-display" id="expose-word-view"></div>
+        <div class="grid" id="expose-kb"></div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; width:100%; margin-top:20px;">
+            <button onclick="closeExposeModal()" style="border-color:#666; color:#666;">閉じる</button>
+            <button onclick="backspace('expose')">削除</button>
+            <button style="border-color:var(--neon-pink); color:var(--neon-pink); grid-column: span 2;" onclick="executeExpose()">攻撃実行 (FIRE!)</button>
+        </div>
     </div>
 </div>
 
@@ -189,8 +208,9 @@
 
     let roomId, myId, myName;
     let currentInput = "";
-    const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん".split("");
-    const genres = ["動物", "食べ物", "スポーツ", "国名", "乗り物", "体の一部", "文房具", "都道府県", "学校にあるもの", "キャラクター", "アニメ", "楽器", "虫", "魚", "家電", "冬のもの"];
+    // v4: 伸ばし棒(ー)を追加
+    const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんー".split("");
+    const genres = ["動物", "食べ物", "スポーツ", "国名", "乗り物", "体の一部", "文房具", "都道府県", "学校にあるもの", "キャラクター", "アニメ", "楽器", "虫", "魚", "家電", "冬のもの", "有名人"];
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -216,12 +236,14 @@
         if (!roomId || !myName) return alert("名前とルームIDを入れてね！");
         myId = Math.random().toString(36).substring(2, 10);
 
+        // ルームID表示を更新
+        document.querySelectorAll('.current-room-text').forEach(el => el.innerText = roomId);
+
         const roomRef = db.ref(`rooms/${roomId}`);
         roomRef.child('players').child(myId).set({
             name: myName, isReady: false, isOut: false, hits: []
         });
 
-        // 念のため
         roomRef.child('players').child(myId).onDisconnect().remove();
 
         listenToRoom();
@@ -237,7 +259,6 @@
             const playerIds = Object.keys(players);
             const status = data.config?.status || 'waiting';
 
-            // ロビー
             if (status === 'waiting') {
                 showScreen('lobby-screen');
                 document.getElementById('player-count').innerText = playerIds.length;
@@ -245,12 +266,11 @@
                 list.innerHTML = "";
                 playerIds.forEach(id => {
                     const li = document.createElement('li');
-                    li.innerText = `READY > ${players[id].name}`;
+                    li.innerText = `CONNECTED > ${players[id].name}`;
                     list.appendChild(li);
                 });
             }
 
-            // セットアップ
             if (status === 'setup') {
                 showScreen('setup-screen');
                 document.getElementById('genre-display').innerText = `お題：${data.config.genre}`;
@@ -263,7 +283,6 @@
                     });
                 }
                 
-                // 全員準備完了判定
                 const allReady = playerIds.length >= 1 && playerIds.every(id => players[id].isReady);
                 if (allReady) {
                     db.ref(`rooms/${roomId}/config`).update({ status: 'playing' });
@@ -273,7 +292,7 @@
                 if (players[myId]?.isReady) {
                     document.getElementById('ready-btn').disabled = true;
                     document.getElementById('ready-btn').innerText = "完了！待機中...";
-                    document.getElementById('setup-wait-msg').innerText = "他の人の入力を待っています...";
+                    document.getElementById('setup-wait-msg').innerText = "全員の入力が終わるのを待っています...";
                 } else {
                     document.getElementById('ready-btn').disabled = false;
                     document.getElementById('ready-btn').innerText = "READY";
@@ -281,7 +300,6 @@
                 }
             }
 
-            // バトル
             if (status === 'playing') {
                 showScreen('battle-screen');
                 updateBattleUI(data);
@@ -289,7 +307,7 @@
 
             if (status === 'finished') {
                 document.getElementById('reset-btn').style.display = 'block';
-                document.getElementById('turn-msg').innerText = "GAME OVER";
+                document.getElementById('turn-msg').innerText = "MISSION COMPLETE";
             } else {
                 document.getElementById('reset-btn').style.display = 'none';
             }
@@ -337,7 +355,7 @@
         });
 
         const isMyTurn = data.turn === myId && !players[myId].isOut;
-        document.getElementById('turn-msg').innerText = isMyTurn ? "あなたの攻撃番です！" : `${players[data.turn]?.name}が考え中...`;
+        document.getElementById('turn-msg').innerText = isMyTurn ? "あなたの番：文字を攻撃せよ！" : `${players[data.turn]?.name}が攻撃中...`;
         document.getElementById('expose-open-btn').style.display = isMyTurn ? 'block' : 'none';
 
         const grid = document.getElementById('attack-grid');
@@ -393,7 +411,7 @@
 
     async function executeExpose() {
         const targetId = document.getElementById('target-select').value;
-        if (!targetId || !currentInput) return;
+        if (!targetId || !currentInput) return alert("ターゲットと単語を入力してね！");
         const snap = await db.ref(`rooms/${roomId}`).get();
         const data = snap.val();
         const target = data.players[targetId];
