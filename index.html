@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AIUE BATTLE: ULTIMATE LOBBY</title>
+    <title>AIUE BATTLE: ULTIMATE LOBBY V2</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;900&display=swap" rel="stylesheet">
@@ -63,9 +63,8 @@
             font-size: 1rem;
         }
         button:active { background: var(--neon-cyan); color: #000; }
-        button:disabled { border-color: #444; color: #444; }
+        button:disabled { border-color: #444; color: #444; opacity: 0.5; }
 
-        /* あいうえお表 */
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
         .key {
             padding: 12px 0;
@@ -79,14 +78,12 @@
         .key.miss { opacity: 0.2; }
         .key.active-key { border-color: var(--neon-cyan); color: var(--neon-cyan); }
 
-        /* プレイヤーリスト（10人対応） */
         #player-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .player-card {
             background: #111;
             border-left: 4px solid #444;
             padding: 8px;
             font-size: 0.8rem;
-            overflow: hidden;
         }
         .player-card.active-turn { border-left-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); }
         .player-card.eliminated { border-left-color: var(--danger); opacity: 0.5; }
@@ -102,7 +99,6 @@
             margin-bottom: 10px;
         }
 
-        /* 待機ロビー用 */
         #lobby-list { list-style: none; padding: 0; text-align: left; }
         #lobby-list li { padding: 8px; border-bottom: 1px solid #222; color: var(--neon-cyan); }
 
@@ -142,7 +138,6 @@
             <p>現在の参加者 (<span id="player-count">0</span>/10)</p>
             <ul id="lobby-list"></ul>
             <button id="start-btn" onclick="startGameSession()" style="width:100%; margin-top:20px;">START MISSION</button>
-            <p style="font-size:0.7rem; color:#666; margin-top:10px;">※全員集まったら開始してください</p>
         </div>
     </div>
 
@@ -158,6 +153,7 @@
                 <button id="ready-btn" onclick="confirmSecretWord()" style="flex:2">READY</button>
             </div>
         </div>
+        <p id="setup-wait-msg" style="text-align:center; color:var(--neon-cyan); font-size:0.8rem;"></p>
     </div>
 
     <!-- 4. バトル画面 -->
@@ -186,6 +182,7 @@
 </div>
 
 <script>
+    // --- Firebase設定 ---
     const firebaseConfig = {
       apiKey: "AIzaSyBpVZkp8eaTwyove6n3i9SE0asIUbYKmjY",
       authDomain: "aiue-battle-online.firebaseapp.com",
@@ -202,7 +199,7 @@
     let roomId, myId, myName;
     let currentInput = "";
     const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん".split("");
-    const genres = ["動物", "食べ物", "スポーツ", "国名", "乗り物", "体の一部", "文房具", "日本の都道府県", "学校にあるもの", "キャラクター", "アニメ・漫画", "楽器", "虫", "魚"];
+    const genres = ["動物", "食べ物", "スポーツ", "国名", "乗り物", "体の一部", "文房具", "日本の都道府県", "学校にあるもの", "キャラクター", "アニメ・漫画", "楽器", "虫", "魚", "家電"];
 
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -221,11 +218,11 @@
         });
     }
 
-    // --- Lobby & Join ---
+    // --- ルーム参加 ---
     function joinRoom() {
         roomId = document.getElementById('room-id').value;
         myName = document.getElementById('player-name').value;
-        if (!roomId || !myName) return alert("全部入力してください");
+        if (!roomId || !myName) return alert("名前とルームIDを入れてください");
         myId = Math.random().toString(36).substring(2, 10);
 
         const roomRef = db.ref(`rooms/${roomId}`);
@@ -236,7 +233,6 @@
             hits: []
         });
 
-        // 退出時に削除
         roomRef.child('players').child(myId).onDisconnect().remove();
 
         listenToRoom();
@@ -252,7 +248,7 @@
             const playerIds = Object.keys(players);
             const status = data.config?.status || 'waiting';
 
-            // ロビー表示
+            // 1. ロビー待機中
             if (status === 'waiting') {
                 showScreen('lobby-screen');
                 document.getElementById('player-count').innerText = playerIds.length;
@@ -265,7 +261,7 @@
                 });
             }
 
-            // セットアップ（お題発表）
+            // 2. セットアップ中（単語入力）
             if (status === 'setup') {
                 showScreen('setup-screen');
                 document.getElementById('genre-display').innerText = `お題：${data.config.genre}`;
@@ -277,19 +273,35 @@
                         }
                     });
                 }
+                
+                // 全員の準備ができたかチェック
+                const allReady = playerIds.length > 0 && playerIds.every(id => players[id].isReady);
+                if (allReady) {
+                    // 全員準備OKならバトル開始へ（誰か一人が代表して更新）
+                    db.ref(`rooms/${roomId}/config`).update({ status: 'playing' });
+                    if (!data.turn) {
+                        db.ref(`rooms/${roomId}`).update({ turn: playerIds[0] });
+                    }
+                }
+
                 if (players[myId]?.isReady) {
                     document.getElementById('ready-btn').disabled = true;
                     document.getElementById('ready-btn').innerText = "WAITING...";
+                    document.getElementById('setup-wait-msg').innerText = "他の人の入力を待っています...";
+                } else {
+                    document.getElementById('ready-btn').disabled = false;
+                    document.getElementById('ready-btn').innerText = "READY";
+                    document.getElementById('setup-wait-msg').innerText = "";
                 }
             }
 
-            // バトル
+            // 3. バトル中
             if (status === 'playing') {
                 showScreen('battle-screen');
                 updateBattleUI(data);
             }
 
-            // 終了
+            // 終了判定
             if (status === 'finished') {
                 document.getElementById('reset-btn').style.display = 'block';
                 document.getElementById('turn-msg').innerText = "MISSION COMPLETE";
@@ -299,7 +311,6 @@
         });
     }
 
-    // ホストがゲーム開始（お題を決定してセットアップへ）
     function startGameSession() {
         const newGenre = genres[Math.floor(Math.random() * genres.length)];
         db.ref(`rooms/${roomId}/config`).set({
@@ -308,7 +319,6 @@
         });
     }
 
-    // 単語を確定
     function confirmSecretWord() {
         if (currentInput.length === 0) return alert("1文字以上入力してください");
         db.ref(`rooms/${roomId}/players/${myId}`).update({
@@ -318,17 +328,10 @@
         currentInput = "";
     }
 
-    // バトルUI更新
     function updateBattleUI(data) {
         const players = data.players;
         const playerIds = Object.keys(players);
         
-        // 全員準備完了かチェック
-        const allReady = playerIds.every(id => players[id].isReady);
-        if (allReady && !data.turn) {
-            db.ref(`rooms/${roomId}`).update({ turn: playerIds[0] });
-        }
-
         document.getElementById('battle-genre').innerText = `お題：${data.config.genre}`;
         const listDiv = document.getElementById('player-list');
         listDiv.innerHTML = "";
@@ -468,8 +471,7 @@
             roomRef.update(updates);
             currentInput = "";
             document.getElementById('setup-word-view').innerText = "";
-            document.getElementById('ready-btn').disabled = false;
-            document.getElementById('ready-btn').innerText = "READY";
+            document.getElementById('setup-kb').innerHTML = ""; // 再生成のためにクリア
         });
     }
 </script>
