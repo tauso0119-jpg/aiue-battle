@@ -33,7 +33,6 @@
         .screen { display: none; flex-direction: column; gap: 15px; }
         .active { display: flex; }
 
-        /* デザインパネル */
         .panel {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid var(--neon-cyan);
@@ -128,6 +127,14 @@
             20%, 60% { transform: translateX(-8px); }
             40%, 80% { transform: translateX(8px); }
         }
+
+        /* ログイン画面専用スタイル */
+        .login-sub-screen { display: none; flex-direction: column; gap: 10px; width: 100%; }
+        .login-sub-screen.active { display: flex; }
+        input {
+            width: 100%; padding: 12px; background: #000; border: 1px solid var(--neon-cyan);
+            color: #fff; box-sizing: border-box; font-size: 1rem;
+        }
     </style>
 </head>
 <body id="main-body">
@@ -137,10 +144,32 @@
 
     <!-- 1. ログイン -->
     <div id="login-screen" class="screen active">
-        <div class="panel">
-            <input type="text" id="room-id" placeholder="ROOM ID" style="width:100%; padding:12px; background:#000; border:1px solid var(--neon-cyan); color:#fff; margin-bottom:15px; box-sizing: border-box;">
-            <input type="text" id="player-name" placeholder="YOUR NAME" maxlength="8" style="width:100%; padding:12px; background:#000; border:1px solid var(--neon-cyan); color:#fff; margin-bottom:15px; box-sizing: border-box;">
-            <button onclick="joinRoom()" style="width:100%">LOGIN TO SYSTEM</button>
+        <!-- メインメニュー -->
+        <div id="login-main" class="login-sub-screen active">
+            <button onclick="showLoginFlow('create')" style="width:100%; margin-bottom:15px;">CREATE SESSION (ルームを作る)</button>
+            <button onclick="showLoginFlow('join')" style="width:100%">JOIN SESSION (ルームに入る)</button>
+        </div>
+
+        <!-- ルーム作成フォーム -->
+        <div id="login-create" class="login-sub-screen">
+            <div class="panel">
+                <h3 style="color:var(--neon-cyan); margin-top:0;">CREATE MISSION</h3>
+                <input type="text" id="create-name" placeholder="YOUR NAME" maxlength="8" style="margin-bottom:10px;">
+                <input type="text" id="create-room-id" placeholder="SET ROOM KEY (自由な文字)" style="margin-bottom:15px;">
+                <button onclick="joinRoom('create')" style="width:100%; margin-bottom:10px;">START LOBBY</button>
+                <button onclick="showLoginFlow('main')" style="width:100%; border-color:#666; color:#666; padding:10px;">BACK</button>
+            </div>
+        </div>
+
+        <!-- ルーム参加フォーム -->
+        <div id="login-join" class="login-sub-screen">
+            <div class="panel">
+                <h3 style="color:var(--neon-pink); margin-top:0;">JOIN MISSION</h3>
+                <input type="text" id="join-name" placeholder="YOUR NAME" maxlength="8" style="margin-bottom:10px;">
+                <input type="text" id="join-room-id" placeholder="ENTER ROOM KEY" style="margin-bottom:15px;">
+                <button onclick="joinRoom('join')" style="width:100%; margin-bottom:10px;">ENTER LOBBY</button>
+                <button onclick="showLoginFlow('main')" style="width:100%; border-color:#666; color:#666; padding:10px;">BACK</button>
+            </div>
         </div>
     </div>
 
@@ -182,7 +211,7 @@
         <button id="reset-btn" style="display:none; margin-top:15px;" onclick="resetGame()">PLAY AGAIN</button>
     </div>
 
-    <div class="version-tag">WORD SHOOTING v1.0</div>
+    <div class="version-tag">WORD SHOOTING v1.1</div>
 </div>
 
 <!-- SNIPE(あばく)モーダル -->
@@ -228,6 +257,11 @@
         window.scrollTo(0,0);
     }
 
+    function showLoginFlow(type) {
+        document.querySelectorAll('.login-sub-screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('login-' + type).classList.add('active');
+    }
+
     function createKeyboard(containerId, callback) {
         const container = document.getElementById(containerId);
         container.innerHTML = "";
@@ -240,9 +274,10 @@
         });
     }
 
-    function joinRoom() {
-        roomId = document.getElementById('room-id').value.trim();
-        myName = document.getElementById('player-name').value.trim();
+    function joinRoom(type) {
+        roomId = document.getElementById(type + '-room-id').value.trim();
+        myName = document.getElementById(type + '-name').value.trim();
+        
         if (!roomId || !myName) return alert("ENTER ROOM ID & NAME!");
         myId = Math.random().toString(36).substring(2, 10);
 
