@@ -69,9 +69,8 @@
             background: transparent; color: var(--neon-cyan); border: 2px solid var(--neon-cyan);
             padding: 15px; font-weight: bold; cursor: pointer; font-size: 1.1rem;
             transition: 0.2s;
-            text-transform: uppercase;
         }
-        button:active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
+        button:active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); transform: scale(0.95); }
         button:disabled { border-color: #444; color: #444; opacity: 0.5; }
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
         .key {
@@ -83,7 +82,7 @@
             user-select: none;
             cursor: pointer;
         }
-        .key:active { transform: scale(0.9); background: var(--neon-cyan); color: #000; box-shadow: 0 0 25px var(--neon-cyan); }
+        .key:active { transform: scale(0.85); background: var(--neon-cyan); color: #000; box-shadow: 0 0 25px var(--neon-cyan); }
         .key-flash { animation: flash-cyan 0.3s ease-out; }
         @keyframes flash-cyan {
             0% { background: #fff; box-shadow: 0 0 40px #fff; color: #000; }
@@ -129,92 +128,86 @@
 
 <div id="app">
     <div class="main-title">WORD SHOOTING</div>
+
     <div id="login-screen" class="screen active">
         <div id="login-main" class="login-sub-screen active">
-            <button onclick="showLoginFlow('create')" style="width:100%; margin-bottom:15px;">CREATE SESSION</button>
-            <button onclick="showLoginFlow('join')" style="width:100%">JOIN SESSION</button>
+            <button onclick="showLoginFlow('create')" style="width:100%; margin-bottom:15px;">ルームを作る (新規作成)</button>
+            <button onclick="showLoginFlow('join')" style="width:100%">ルームに入る (参加)</button>
         </div>
         <div id="login-create" class="login-sub-screen">
             <div class="panel">
-                <h3 style="color:var(--neon-cyan); margin-top:0;">CREATE MISSION</h3>
-                <input type="text" id="create-name" placeholder="YOUR NAME" maxlength="8" style="margin-bottom:10px;">
-                <input type="text" id="create-room-id" placeholder="SET ROOM KEY" style="margin-bottom:15px;">
-                <button onclick="joinRoom('create')" style="width:100%; margin-bottom:10px;">START LOBBY</button>
-                <button onclick="showLoginFlow('main')" style="width:100%; border-color:#666; color:#666; padding:10px;">BACK</button>
+                <h3 style="color:var(--neon-cyan); margin-top:0;">ルーム新規作成</h3>
+                <input type="text" id="create-name" placeholder="あなたの名前" maxlength="8" style="margin-bottom:10px;">
+                <input type="text" id="create-room-id" placeholder="ルーム番号（好きな数字や文字）" style="margin-bottom:15px;">
+                <button onclick="joinRoom('create')" style="width:100%; margin-bottom:10px;">ロビーを作成する</button>
+                <button onclick="showLoginFlow('main')" style="width:100%; border-color:#666; color:#666; padding:10px;">もどる</button>
             </div>
         </div>
         <div id="login-join" class="login-sub-screen">
             <div class="panel">
-                <h3 style="color:var(--neon-pink); margin-top:0;">JOIN MISSION</h3>
-                <input type="text" id="join-name" placeholder="YOUR NAME" maxlength="8" style="margin-bottom:10px;">
-                <input type="text" id="join-room-id" placeholder="ENTER ROOM KEY" style="margin-bottom:15px;">
-                <button onclick="joinRoom('join')" style="width:100%; margin-bottom:10px;">ENTER LOBBY</button>
-                <button onclick="showLoginFlow('main')" style="width:100%; border-color:#666; color:#666; padding:10px;">BACK</button>
+                <h3 style="color:var(--neon-pink); margin-top:0;">ルームに参加</h3>
+                <input type="text" id="join-name" placeholder="あなたの名前" maxlength="8" style="margin-bottom:10px;">
+                <input type="text" id="join-room-id" placeholder="教えてもらったルーム番号" style="margin-bottom:15px;">
+                <button onclick="joinRoom('join')" style="width:100%; margin-bottom:10px;">ロビーに入る</button>
+                <button onclick="showLoginFlow('main')" style="width:100%; border-color:#666; color:#666; padding:10px;">もどる</button>
             </div>
         </div>
     </div>
+
     <div id="lobby-screen" class="screen">
-        <div class="room-display">TARGET ROOM: <span class="current-room-text">----</span></div>
+        <div class="room-display">ルーム番号: <span class="current-room-text">----</span></div>
         <div class="panel" style="text-align:center">
-            <h3 style="color:var(--neon-pink); margin-top:0;">READY FOR MISSION</h3>
-            <p>MEMBERS: <span id="player-count">0</span> / 10</p>
+            <h3 style="color:var(--neon-pink); margin-top:0;">待機中...</h3>
+            <p>参加人数: <span id="player-count">0</span> / 10</p>
             <ul id="lobby-list"></ul>
-            <button id="start-btn" onclick="startGameSession()" style="width:100%; margin-top:20px;">START MISSION</button>
+            <button id="start-btn" onclick="startGameSession()" style="width:100%; margin-top:20px;">ゲームを開始する</button>
         </div>
     </div>
+
     <div id="setup-screen" class="screen">
-        <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
+        <div class="room-display">ルーム: <span class="current-room-text">----</span></div>
         <div class="panel" style="text-align:center">
-            <div id="genre-display" class="genre-badge">---</div>
-            <p style="font-size:0.9rem; margin:10px 0;">TARGET WORD (MAX 8 CHARS)</p>
+            <div id="genre-display" class="genre-badge">お題: ---</div>
+            <p style="font-size:0.9rem; margin:10px 0;">自分の単語を入力（最大8文字）</p>
             <div class="input-display" id="setup-word-view"></div>
             <div class="grid" id="setup-kb"></div>
             <div style="display:flex; gap:10px; margin-top:15px;">
-                <button onclick="backspace('setup')" style="flex:1">DEL</button>
-                <button id="ready-btn" onclick="confirmSecretWord()" style="flex:2">LOAD AMMO</button>
+                <button onclick="backspace('setup')" style="flex:1">1文字消す</button>
+                <button id="ready-btn" onclick="confirmSecretWord()" style="flex:2">決定して完了！</button>
             </div>
         </div>
         <p id="setup-wait-msg" style="text-align:center; color:var(--neon-pink); font-weight:bold;"></p>
     </div>
+
     <div id="battle-screen" class="screen">
-        <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
-        <div id="battle-genre" class="genre-badge" style="text-align:center; align-self:center">---</div>
+        <div class="room-display">ルーム: <span class="current-room-text">----</span></div>
+        <div id="battle-genre" class="genre-badge" style="text-align:center; align-self:center">お題: ---</div>
         <div id="player-list"></div>
         <div id="turn-msg" style="text-align:center; color:var(--neon-yellow); font-weight:bold; margin:10px 0;"></div>
         <div class="grid" id="attack-grid"></div>
-        <button id="expose-open-btn" class="danger" style="border-color:var(--neon-pink); color:var(--neon-pink); margin-top:15px;" onclick="openExposeModal()">【一撃】SNIPE</button>
-        <button id="reset-btn" style="display:none; margin-top:15px;" onclick="resetGame()">PLAY AGAIN</button>
+        <button id="expose-open-btn" class="danger" style="border-color:var(--neon-pink); color:var(--neon-pink); margin-top:15px;" onclick="openExposeModal()">【一撃】単語をあばく！</button>
+        <button id="reset-btn" style="display:none; margin-top:15px;" onclick="resetGame()">もう一度遊ぶ</button>
     </div>
 </div>
 
 <div id="expose-modal" class="modal">
     <div class="modal-content">
-        <h2 style="color:var(--neon-pink); text-align:center; margin-top:0;">SNIPE SYSTEM</h2>
+        <h2 style="color:var(--neon-pink); text-align:center; margin-top:0;">あばくシステム</h2>
         <div class="panel" style="border-color:var(--neon-pink); margin-bottom:15px;">
-            <p style="margin-top:0; font-size:0.8rem;">SELECT TARGET:</p>
+            <p style="margin-top:0; font-size:0.8rem;">狙う相手を選択：</p>
             <select id="target-select" style="width:100%; padding:12px; background:#222; color:#fff; border:1px solid var(--neon-pink); font-size:1.1rem;"></select>
         </div>
         <div class="input-display" id="expose-word-view"></div>
         <div class="grid" id="expose-kb"></div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; width:100%; margin-top:20px;">
-            <button onclick="closeExposeModal()" style="border-color:#666; color:#666;">ABORT</button>
-            <button onclick="backspace('expose')">DEL</button>
-            <button style="border-color:var(--neon-pink); color:var(--neon-pink); grid-column: span 2; font-size: 1.3rem;" onclick="executeExpose()">SHOOT!</button>
+            <button onclick="closeExposeModal()" style="border-color:#666; color:#666;">やめる</button>
+            <button onclick="backspace('expose')">消す</button>
+            <button style="border-color:var(--neon-pink); color:var(--neon-pink); grid-column: span 2; font-size: 1.3rem;" onclick="executeExpose()">SHOOT! (決定)</button>
         </div>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBpVZkp8eaTwyove6n3i9SE0asIUbYKmjY",
-      authDomain: "aiue-battle-online.firebaseapp.com",
-      databaseURL: "https://aiue-battle-online-default-rtdb.firebaseio.com",
-      projectId: "aiue-battle-online",
-      storageBucket: "aiue-battle-online.firebasestorage.app",
-      messagingSenderId: "1032584345696",
-      appId: "1:1032584345696:web:aa3b9ceb4cfed976236b05"
-    };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let roomId, myId, myName, currentInput = "";
@@ -249,7 +242,7 @@
     function joinRoom(type) {
         roomId = document.getElementById(type + '-room-id').value.trim();
         myName = document.getElementById(type + '-name').value.trim();
-        if (!roomId || !myName) return alert("ENTER ROOM ID & NAME!");
+        if (!roomId || !myName) return alert("名前とルーム番号を入れてね！");
         myId = Math.random().toString(36).substring(2, 10);
         document.querySelectorAll('.current-room-text').forEach(el => el.innerText = roomId);
         const roomRef = db.ref(`rooms/${roomId}`);
@@ -272,13 +265,13 @@
                 list.innerHTML = "";
                 playerIds.forEach(id => {
                     const li = document.createElement('li');
-                    li.innerText = `LOCKED ON > ${players[id].name}`;
+                    li.innerText = `ロックオン中 > ${players[id].name}`;
                     list.appendChild(li);
                 });
             }
             if (status === 'setup') {
                 showScreen('setup-screen');
-                document.getElementById('genre-display').innerText = `TARGET: ${data.config.genre}`;
+                document.getElementById('genre-display').innerText = `お題: ${data.config.genre}`;
                 if (document.getElementById('setup-kb').innerHTML === "") {
                     createKeyboard('setup-kb', (c) => {
                         if (currentInput.length < 8) {
@@ -287,15 +280,15 @@
                         }
                     });
                 }
-                const allReady = playerIds.length >= 1 && playerIds.every(id => players[id].isReady);
+                const allReady = playerIds.length >= 2 && playerIds.every(id => players[id].isReady);
                 if (allReady) {
                     db.ref(`rooms/${roomId}/config`).update({ status: 'playing' });
                     if (!data.turn) db.ref(`rooms/${roomId}`).update({ turn: playerIds[0] });
                 }
                 if (players[myId]?.isReady) {
                     document.getElementById('ready-btn').disabled = true;
-                    document.getElementById('ready-btn').innerText = "LOADED";
-                    document.getElementById('setup-wait-msg').innerText = "WAITING FOR OTHERS...";
+                    document.getElementById('ready-btn').innerText = "準備完了！";
+                    document.getElementById('setup-wait-msg').innerText = "他のプレイヤーを待っています...";
                 }
             }
             if (status === 'playing') {
@@ -304,24 +297,23 @@
             }
             if (status === 'finished') {
                 document.getElementById('reset-btn').style.display = 'block';
-                document.getElementById('turn-msg').innerText = "MISSION COMPLETED";
+                document.getElementById('turn-msg').innerText = "★ ミッション終了 ★";
             }
         });
     }
     function startGameSession() {
         const newGenre = genres[Math.floor(Math.random() * genres.length)];
-        // ステータス更新。これが他のプレイヤーに同期される
         db.ref(`rooms/${roomId}/config`).set({ status: 'setup', genre: newGenre });
     }
     function confirmSecretWord() {
-        if (currentInput.length === 0) return alert("ENTER WORD!");
+        if (currentInput.length === 0) return alert("言葉を入力してね！");
         db.ref(`rooms/${roomId}/players/${myId}`).update({ word: currentInput, isReady: true });
         currentInput = "";
     }
     function updateBattleUI(data) {
         const players = data.players;
         const playerIds = Object.keys(players);
-        document.getElementById('battle-genre').innerText = `TARGET: ${data.config.genre}`;
+        document.getElementById('battle-genre').innerText = `お題: ${data.config.genre}`;
         const listDiv = document.getElementById('player-list');
         listDiv.innerHTML = "";
         const targetSelect = document.getElementById('target-select');
@@ -342,7 +334,7 @@
             }
         });
         const isMyTurn = data.turn === myId && !players[myId].isOut;
-        document.getElementById('turn-msg').innerText = isMyTurn ? "YOUR TURN: SHOOT!" : `${players[data.turn]?.name} IS AIMING...`;
+        document.getElementById('turn-msg').innerText = isMyTurn ? "あなたの番：撃て！" : `${players[data.turn]?.name}が狙っています...`;
         document.getElementById('expose-open-btn').style.display = isMyTurn ? 'block' : 'none';
         const grid = document.getElementById('attack-grid');
         grid.innerHTML = "";
@@ -396,7 +388,7 @@
     function closeExposeModal() { document.getElementById('expose-modal').style.display = 'none'; }
     async function executeExpose() {
         const targetId = document.getElementById('target-select').value;
-        if (!targetId || !currentInput) return alert("SELECT TARGET!");
+        if (!targetId || !currentInput) return alert("相手と言葉を選んでね！");
         const snap = await db.ref(`rooms/${roomId}`).get();
         const data = snap.val();
         const target = data.players[targetId];
@@ -441,6 +433,7 @@
             updates['turn'] = null;
             roomRef.update(updates);
             currentInput = "";
+            document.getElementById('setup-kb').innerHTML = "";
         });
     }
 </script>
