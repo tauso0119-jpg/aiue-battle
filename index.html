@@ -91,9 +91,10 @@
             min-height: 50px;
             transition: transform 0.05s, background 0.2s;
             user-select: none;
+            cursor: pointer;
         }
 
-        /* 押した時の「光る」演出 */
+        /* 押した時のフィードバック */
         .key:active {
             transform: scale(0.9);
             background: var(--neon-cyan);
@@ -101,7 +102,7 @@
             box-shadow: 0 0 25px var(--neon-cyan);
         }
 
-        /* 押した後の余韻フラッシュ */
+        /* フラッシュ演出用 */
         .key-flash {
             animation: flash-cyan 0.3s ease-out;
         }
@@ -262,7 +263,7 @@
         document.getElementById('login-' + type).classList.add('active');
     }
 
-    // キーボード生成：フィードバック演出付き
+    // すべての入力シーンで使える「バイブス付きキーボード生成」
     function createKeyboard(containerId, callback) {
         const container = document.getElementById(containerId);
         container.innerHTML = "";
@@ -272,7 +273,7 @@
             k.innerText = c;
             k.onclick = (e) => { 
                 e.preventDefault(); 
-                // 押した瞬間のフラッシュ演出
+                // 演出: フラッシュ
                 k.classList.add('key-flash');
                 setTimeout(() => k.classList.remove('key-flash'), 300);
                 callback(c); 
@@ -318,6 +319,7 @@
                 showScreen('setup-screen');
                 document.getElementById('genre-display').innerText = `TARGET: ${data.config.genre}`;
                 if (document.getElementById('setup-kb').innerHTML === "") {
+                    // セットアップ画面にもバイブス適用
                     createKeyboard('setup-kb', (c) => {
                         if (currentInput.length < 8) {
                             currentInput += c;
@@ -333,6 +335,7 @@
                 if (players[myId]?.isReady) {
                     document.getElementById('ready-btn').disabled = true;
                     document.getElementById('ready-btn').innerText = "LOADED";
+                    document.getElementById('setup-wait-msg').innerText = "WAITING FOR OTHERS...";
                 }
             }
 
@@ -433,6 +436,7 @@
         currentInput = "";
         document.getElementById('expose-word-view').innerText = "";
         document.getElementById('expose-modal').style.display = 'flex';
+        // モーダルのキーボードにもバイブス適用
         createKeyboard('expose-kb', (c) => {
             if (currentInput.length < 8) {
                 currentInput += c;
