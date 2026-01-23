@@ -79,7 +79,7 @@
             transition: 0.2s;
             text-transform: uppercase;
         }
-        button:active { background: var(--neon-cyan); color: #000; }
+        button:active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
         button:disabled { border-color: #444; color: #444; opacity: 0.5; }
 
         /* キーボード */
@@ -89,7 +89,28 @@
             color: #ccc; text-align: center; border-radius: 4px;
             display: flex; justify-content: center; align-items: center;
             min-height: 50px;
+            transition: transform 0.05s, background 0.2s;
+            user-select: none;
         }
+
+        /* 押した時の「光る」演出 */
+        .key:active {
+            transform: scale(0.9);
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 25px var(--neon-cyan);
+        }
+
+        /* 押した後の余韻フラッシュ */
+        .key-flash {
+            animation: flash-cyan 0.3s ease-out;
+        }
+
+        @keyframes flash-cyan {
+            0% { background: #fff; box-shadow: 0 0 40px #fff; color: #000; }
+            100% { background: #111; box-shadow: 0 0 0px transparent; }
+        }
+
         .key.hit { background: var(--neon-pink); color: white; border-color: white; box-shadow: 0 0 10px var(--neon-pink); }
         .key.miss { opacity: 0.2; }
         .key.active-key { border-color: var(--neon-cyan); color: var(--neon-cyan); background: #1a1a1a; box-shadow: inset 0 0 5px var(--neon-cyan); }
@@ -128,7 +149,6 @@
             40%, 80% { transform: translateX(8px); }
         }
 
-        /* ログイン画面専用スタイル */
         .login-sub-screen { display: none; flex-direction: column; gap: 10px; width: 100%; }
         .login-sub-screen.active { display: flex; }
         input {
@@ -142,26 +162,20 @@
 <div id="app">
     <div class="main-title">WORD SHOOTING</div>
 
-    <!-- 1. ログイン -->
     <div id="login-screen" class="screen active">
-        <!-- メインメニュー -->
         <div id="login-main" class="login-sub-screen active">
-            <button onclick="showLoginFlow('create')" style="width:100%; margin-bottom:15px;">CREATE SESSION (ルームを作る)</button>
-            <button onclick="showLoginFlow('join')" style="width:100%">JOIN SESSION (ルームに入る)</button>
+            <button onclick="showLoginFlow('create')" style="width:100%; margin-bottom:15px;">CREATE SESSION</button>
+            <button onclick="showLoginFlow('join')" style="width:100%">JOIN SESSION</button>
         </div>
-
-        <!-- ルーム作成フォーム -->
         <div id="login-create" class="login-sub-screen">
             <div class="panel">
                 <h3 style="color:var(--neon-cyan); margin-top:0;">CREATE MISSION</h3>
                 <input type="text" id="create-name" placeholder="YOUR NAME" maxlength="8" style="margin-bottom:10px;">
-                <input type="text" id="create-room-id" placeholder="SET ROOM KEY (自由な文字)" style="margin-bottom:15px;">
+                <input type="text" id="create-room-id" placeholder="SET ROOM KEY" style="margin-bottom:15px;">
                 <button onclick="joinRoom('create')" style="width:100%; margin-bottom:10px;">START LOBBY</button>
                 <button onclick="showLoginFlow('main')" style="width:100%; border-color:#666; color:#666; padding:10px;">BACK</button>
             </div>
         </div>
-
-        <!-- ルーム参加フォーム -->
         <div id="login-join" class="login-sub-screen">
             <div class="panel">
                 <h3 style="color:var(--neon-pink); margin-top:0;">JOIN MISSION</h3>
@@ -173,7 +187,6 @@
         </div>
     </div>
 
-    <!-- 2. ロビー -->
     <div id="lobby-screen" class="screen">
         <div class="room-display">TARGET ROOM: <span class="current-room-text">----</span></div>
         <div class="panel" style="text-align:center">
@@ -184,7 +197,6 @@
         </div>
     </div>
 
-    <!-- 3. セットアップ -->
     <div id="setup-screen" class="screen">
         <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
         <div class="panel" style="text-align:center">
@@ -200,7 +212,6 @@
         <p id="setup-wait-msg" style="text-align:center; color:var(--neon-pink); font-weight:bold;"></p>
     </div>
 
-    <!-- 4. バトル -->
     <div id="battle-screen" class="screen">
         <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
         <div id="battle-genre" class="genre-badge" style="text-align:center; align-self:center">---</div>
@@ -214,7 +225,6 @@
     <div class="version-tag">WORD SHOOTING v1.1</div>
 </div>
 
-<!-- SNIPE(あばく)モーダル -->
 <div id="expose-modal" class="modal">
     <div class="modal-content">
         <h2 style="color:var(--neon-pink); text-align:center; margin-top:0;">SNIPE SYSTEM</h2>
@@ -227,22 +237,12 @@
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; width:100%; margin-top:20px;">
             <button onclick="closeExposeModal()" style="border-color:#666; color:#666;">ABORT</button>
             <button onclick="backspace('expose')">DEL</button>
-            <button style="border-color:var(--neon-pink); color:var(--neon-pink); grid-column: span 2; font-size: 1.3rem;" onclick="executeExpose()">SHOOT! (FIRE!)</button>
+            <button style="border-color:var(--neon-pink); color:var(--neon-pink); grid-column: span 2; font-size: 1.3rem;" onclick="executeExpose()">SHOOT!</button>
         </div>
     </div>
 </div>
 
 <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBpVZkp8eaTwyove6n3i9SE0asIUbYKmjY",
-      authDomain: "aiue-battle-online.firebaseapp.com",
-      databaseURL: "https://aiue-battle-online-default-rtdb.firebaseio.com",
-      projectId: "aiue-battle-online",
-      storageBucket: "aiue-battle-online.firebasestorage.app",
-      messagingSenderId: "1032584345696",
-      appId: "1:1032584345696:web:aa3b9ceb4cfed976236b05"
-    };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -262,6 +262,7 @@
         document.getElementById('login-' + type).classList.add('active');
     }
 
+    // キーボード生成：フィードバック演出付き
     function createKeyboard(containerId, callback) {
         const container = document.getElementById(containerId);
         container.innerHTML = "";
@@ -269,7 +270,13 @@
             const k = document.createElement('div');
             k.className = 'key';
             k.innerText = c;
-            k.onclick = (e) => { e.preventDefault(); callback(c); };
+            k.onclick = (e) => { 
+                e.preventDefault(); 
+                // 押した瞬間のフラッシュ演出
+                k.classList.add('key-flash');
+                setTimeout(() => k.classList.remove('key-flash'), 300);
+                callback(c); 
+            };
             container.appendChild(k);
         });
     }
@@ -277,19 +284,12 @@
     function joinRoom(type) {
         roomId = document.getElementById(type + '-room-id').value.trim();
         myName = document.getElementById(type + '-name').value.trim();
-        
         if (!roomId || !myName) return alert("ENTER ROOM ID & NAME!");
         myId = Math.random().toString(36).substring(2, 10);
-
         document.querySelectorAll('.current-room-text').forEach(el => el.innerText = roomId);
-
         const roomRef = db.ref(`rooms/${roomId}`);
-        roomRef.child('players').child(myId).set({
-            name: myName, isReady: false, isOut: false, hits: []
-        });
-
+        roomRef.child('players').child(myId).set({ name: myName, isReady: false, isOut: false, hits: [] });
         roomRef.child('players').child(myId).onDisconnect().remove();
-
         listenToRoom();
         showScreen('lobby-screen');
     }
@@ -298,7 +298,6 @@
         db.ref(`rooms/${roomId}`).on('value', snap => {
             const data = snap.val();
             if (!data) return;
-
             const players = data.players || {};
             const playerIds = Object.keys(players);
             const status = data.config?.status || 'waiting';
@@ -326,21 +325,14 @@
                         }
                     });
                 }
-                
                 const allReady = playerIds.length >= 1 && playerIds.every(id => players[id].isReady);
                 if (allReady) {
                     db.ref(`rooms/${roomId}/config`).update({ status: 'playing' });
                     if (!data.turn) db.ref(`rooms/${roomId}`).update({ turn: playerIds[0] });
                 }
-
                 if (players[myId]?.isReady) {
                     document.getElementById('ready-btn').disabled = true;
                     document.getElementById('ready-btn').innerText = "LOADED";
-                    document.getElementById('setup-wait-msg').innerText = "WAITING FOR OTHERS...";
-                } else {
-                    document.getElementById('ready-btn').disabled = false;
-                    document.getElementById('ready-btn').innerText = "LOAD AMMO";
-                    document.getElementById('setup-wait-msg').innerText = "";
                 }
             }
 
@@ -352,8 +344,6 @@
             if (status === 'finished') {
                 document.getElementById('reset-btn').style.display = 'block';
                 document.getElementById('turn-msg').innerText = "MISSION COMPLETED";
-            } else {
-                document.getElementById('reset-btn').style.display = 'none';
             }
         });
     }
@@ -372,7 +362,6 @@
     function updateBattleUI(data) {
         const players = data.players;
         const playerIds = Object.keys(players);
-        
         document.getElementById('battle-genre').innerText = `TARGET: ${data.config.genre}`;
         const listDiv = document.getElementById('player-list');
         listDiv.innerHTML = "";
@@ -383,14 +372,11 @@
             const p = players[id];
             const card = document.createElement('div');
             card.className = `player-card ${id === data.turn ? 'active-turn' : ''} ${p.isOut ? 'eliminated' : ''}`;
-            
             const display = p.word.split("").map(c => 
                 (p.hits && p.hits.includes(c)) ? `<span style="color:var(--neon-pink)">${c}</span>` : (id === myId ? c : "？")
             ).join("");
-
             card.innerHTML = `<strong>${p.name}</strong><br>[ ${display} ]`;
             listDiv.appendChild(card);
-
             if (id !== myId && !p.isOut) {
                 const opt = document.createElement('option');
                 opt.value = id; opt.innerText = p.name;
@@ -409,7 +395,11 @@
             k.className = `key ${data.usedChars?.[c] || ''}`;
             k.innerText = c;
             if (isMyTurn && !data.usedChars?.[c]) {
-                k.onclick = () => attack(c);
+                k.onclick = () => {
+                    k.classList.add('key-flash');
+                    setTimeout(() => k.classList.remove('key-flash'), 300);
+                    attack(c);
+                };
                 k.classList.add('active-key');
             }
             grid.appendChild(k);
@@ -421,7 +411,6 @@
         const data = snap.val();
         let hitAny = false;
         const players = data.players;
-
         Object.keys(players).forEach(id => {
             if (players[id].isOut) return;
             if (players[id].word.includes(char)) {
@@ -429,7 +418,7 @@
                 const newHits = players[id].hits ? [...new Set([...players[id].hits, char])] : [char];
                 const isOut = players[id].word.split("").every(c => newHits.includes(c));
                 db.ref(`rooms/${roomId}/players/${id}`).update({ hits: newHits, isOut: isOut });
-                if (hitAny) triggerShake();
+                triggerShake();
             }
         });
         nextTurn(data, char, hitAny ? 'hit' : 'miss');
@@ -459,7 +448,6 @@
         const snap = await db.ref(`rooms/${roomId}`).get();
         const data = snap.val();
         const target = data.players[targetId];
-
         if (target.word === currentInput) {
             db.ref(`rooms/${roomId}/players/${targetId}`).update({ isOut: true, hits: target.word.split("") });
             triggerShake();
@@ -506,7 +494,6 @@
             updates['turn'] = null;
             roomRef.update(updates);
             currentInput = "";
-            document.getElementById('setup-word-view').innerText = "";
             document.getElementById('setup-kb').innerHTML = "";
         });
     }
