@@ -7,7 +7,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Noto+Sans+JP:wght@400;900&display=swap" rel="stylesheet">
-
     <style>
         :root {
             --neon-cyan: #00f3ff;
@@ -16,7 +15,6 @@
             --bg-dark: #050505;
             --danger: #ff003c;
         }
-
         body {
             background-color: var(--bg-dark);
             color: #fff;
@@ -28,11 +26,9 @@
             min-height: 100vh;
             touch-action: manipulation;
         }
-
         #app { width: 100%; max-width: 500px; padding: 15px; box-sizing: border-box; position: relative; }
         .screen { display: none; flex-direction: column; gap: 15px; }
         .active { display: flex; }
-
         .panel {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid var(--neon-cyan);
@@ -41,7 +37,6 @@
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
             position: relative;
         }
-
         .main-title {
             text-align: center;
             color: var(--neon-cyan);
@@ -51,7 +46,6 @@
             letter-spacing: 3px;
             font-weight: 700;
         }
-
         .room-display {
             font-size: 0.85rem;
             color: var(--neon-cyan);
@@ -60,7 +54,6 @@
             letter-spacing: 2px;
             font-weight: bold;
         }
-
         .genre-badge {
             background: var(--neon-pink);
             color: white;
@@ -72,7 +65,6 @@
             font-size: 1.4rem;
             box-shadow: 0 0 10px var(--neon-pink);
         }
-
         button {
             background: transparent; color: var(--neon-cyan); border: 2px solid var(--neon-cyan);
             padding: 15px; font-weight: bold; cursor: pointer; font-size: 1.1rem;
@@ -81,8 +73,6 @@
         }
         button:active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
         button:disabled { border-color: #444; color: #444; opacity: 0.5; }
-
-        /* キーボード */
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
         .key {
             padding: 12px 0; font-size: 1.2rem; background: #111; border: 1px solid #333;
@@ -93,48 +83,27 @@
             user-select: none;
             cursor: pointer;
         }
-
-        /* 押した時のフィードバック */
-        .key:active {
-            transform: scale(0.9);
-            background: var(--neon-cyan);
-            color: #000;
-            box-shadow: 0 0 25px var(--neon-cyan);
-        }
-
-        /* フラッシュ演出用 */
-        .key-flash {
-            animation: flash-cyan 0.3s ease-out;
-        }
-
+        .key:active { transform: scale(0.9); background: var(--neon-cyan); color: #000; box-shadow: 0 0 25px var(--neon-cyan); }
+        .key-flash { animation: flash-cyan 0.3s ease-out; }
         @keyframes flash-cyan {
             0% { background: #fff; box-shadow: 0 0 40px #fff; color: #000; }
             100% { background: #111; box-shadow: 0 0 0px transparent; }
         }
-
         .key.hit { background: var(--neon-pink); color: white; border-color: white; box-shadow: 0 0 10px var(--neon-pink); }
         .key.miss { opacity: 0.2; }
         .key.active-key { border-color: var(--neon-cyan); color: var(--neon-cyan); background: #1a1a1a; box-shadow: inset 0 0 5px var(--neon-cyan); }
-
         #player-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .player-card {
-            background: #111; border-left: 4px solid #444; padding: 10px; font-size: 0.85rem;
-            border-radius: 4px;
-        }
+        .player-card { background: #111; border-left: 4px solid #444; padding: 10px; font-size: 0.85rem; border-radius: 4px; }
         .player-card.active-turn { border-left-color: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); background: #222; }
         .player-card.eliminated { border-left-color: var(--danger); opacity: 0.4; }
-
         .input-display {
             background: #000; border-bottom: 3px solid var(--neon-pink);
             height: 50px; font-size: 1.8rem; display: flex; justify-content: center; align-items: center;
             margin-bottom: 15px; letter-spacing: 4px; color: var(--neon-yellow);
         }
-
         #lobby-list { list-style: none; padding: 0; text-align: left; }
         #lobby-list li { padding: 10px; border-bottom: 1px solid #222; color: var(--neon-cyan); font-weight: bold; }
-
         .version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 0.7rem; color: #444; }
-
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.95); display: none; flex-direction: column;
@@ -142,14 +111,12 @@
             overflow-y: auto;
         }
         .modal-content { width: 100%; max-width: 450px; padding-top: 20px; }
-
         .shake { animation: shake-anim 0.4s ease-in-out; }
         @keyframes shake-anim {
             0%, 100% { transform: translateX(0); }
             20%, 60% { transform: translateX(-8px); }
             40%, 80% { transform: translateX(8px); }
         }
-
         .login-sub-screen { display: none; flex-direction: column; gap: 10px; width: 100%; }
         .login-sub-screen.active { display: flex; }
         input {
@@ -162,7 +129,6 @@
 
 <div id="app">
     <div class="main-title">WORD SHOOTING</div>
-
     <div id="login-screen" class="screen active">
         <div id="login-main" class="login-sub-screen active">
             <button onclick="showLoginFlow('create')" style="width:100%; margin-bottom:15px;">CREATE SESSION</button>
@@ -187,7 +153,6 @@
             </div>
         </div>
     </div>
-
     <div id="lobby-screen" class="screen">
         <div class="room-display">TARGET ROOM: <span class="current-room-text">----</span></div>
         <div class="panel" style="text-align:center">
@@ -197,7 +162,6 @@
             <button id="start-btn" onclick="startGameSession()" style="width:100%; margin-top:20px;">START MISSION</button>
         </div>
     </div>
-
     <div id="setup-screen" class="screen">
         <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
         <div class="panel" style="text-align:center">
@@ -212,7 +176,6 @@
         </div>
         <p id="setup-wait-msg" style="text-align:center; color:var(--neon-pink); font-weight:bold;"></p>
     </div>
-
     <div id="battle-screen" class="screen">
         <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
         <div id="battle-genre" class="genre-badge" style="text-align:center; align-self:center">---</div>
@@ -222,8 +185,6 @@
         <button id="expose-open-btn" class="danger" style="border-color:var(--neon-pink); color:var(--neon-pink); margin-top:15px;" onclick="openExposeModal()">【一撃】SNIPE</button>
         <button id="reset-btn" style="display:none; margin-top:15px;" onclick="resetGame()">PLAY AGAIN</button>
     </div>
-
-    <div class="version-tag">WORD SHOOTING v1.1</div>
 </div>
 
 <div id="expose-modal" class="modal">
@@ -244,11 +205,19 @@
 </div>
 
 <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBpVZkp8eaTwyove6n3i9SE0asIUbYKmjY",
+      authDomain: "aiue-battle-online.firebaseapp.com",
+      databaseURL: "https://aiue-battle-online-default-rtdb.firebaseio.com",
+      projectId: "aiue-battle-online",
+      storageBucket: "aiue-battle-online.firebasestorage.app",
+      messagingSenderId: "1032584345696",
+      appId: "1:1032584345696:web:aa3b9ceb4cfed976236b05"
+    };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
-    let roomId, myId, myName;
-    let currentInput = "";
+    let roomId, myId, myName, currentInput = "";
     const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんー".split("");
     const genres = ["動物", "食べ物", "スポーツ", "国名", "乗り物", "体の一部", "文房具", "都道府県", "学校にあるもの", "キャラクター", "アニメ", "楽器", "虫", "魚", "家電", "冬のもの", "有名人"];
 
@@ -257,13 +226,10 @@
         document.getElementById(id).classList.add('active');
         window.scrollTo(0,0);
     }
-
     function showLoginFlow(type) {
         document.querySelectorAll('.login-sub-screen').forEach(s => s.classList.remove('active'));
         document.getElementById('login-' + type).classList.add('active');
     }
-
-    // すべての入力シーンで使える「バイブス付きキーボード生成」
     function createKeyboard(containerId, callback) {
         const container = document.getElementById(containerId);
         container.innerHTML = "";
@@ -273,7 +239,6 @@
             k.innerText = c;
             k.onclick = (e) => { 
                 e.preventDefault(); 
-                // 演出: フラッシュ
                 k.classList.add('key-flash');
                 setTimeout(() => k.classList.remove('key-flash'), 300);
                 callback(c); 
@@ -281,7 +246,6 @@
             container.appendChild(k);
         });
     }
-
     function joinRoom(type) {
         roomId = document.getElementById(type + '-room-id').value.trim();
         myName = document.getElementById(type + '-name').value.trim();
@@ -294,7 +258,6 @@
         listenToRoom();
         showScreen('lobby-screen');
     }
-
     function listenToRoom() {
         db.ref(`rooms/${roomId}`).on('value', snap => {
             const data = snap.val();
@@ -302,7 +265,6 @@
             const players = data.players || {};
             const playerIds = Object.keys(players);
             const status = data.config?.status || 'waiting';
-
             if (status === 'waiting') {
                 showScreen('lobby-screen');
                 document.getElementById('player-count').innerText = playerIds.length;
@@ -314,12 +276,10 @@
                     list.appendChild(li);
                 });
             }
-
             if (status === 'setup') {
                 showScreen('setup-screen');
                 document.getElementById('genre-display').innerText = `TARGET: ${data.config.genre}`;
                 if (document.getElementById('setup-kb').innerHTML === "") {
-                    // セットアップ画面にもバイブス適用
                     createKeyboard('setup-kb', (c) => {
                         if (currentInput.length < 8) {
                             currentInput += c;
@@ -338,30 +298,26 @@
                     document.getElementById('setup-wait-msg').innerText = "WAITING FOR OTHERS...";
                 }
             }
-
             if (status === 'playing') {
                 showScreen('battle-screen');
                 updateBattleUI(data);
             }
-
             if (status === 'finished') {
                 document.getElementById('reset-btn').style.display = 'block';
                 document.getElementById('turn-msg').innerText = "MISSION COMPLETED";
             }
         });
     }
-
     function startGameSession() {
         const newGenre = genres[Math.floor(Math.random() * genres.length)];
+        // ステータス更新。これが他のプレイヤーに同期される
         db.ref(`rooms/${roomId}/config`).set({ status: 'setup', genre: newGenre });
     }
-
     function confirmSecretWord() {
-        if (currentInput.length === 0) return alert("ENTER AT LEAST 1 CHAR!");
+        if (currentInput.length === 0) return alert("ENTER WORD!");
         db.ref(`rooms/${roomId}/players/${myId}`).update({ word: currentInput, isReady: true });
         currentInput = "";
     }
-
     function updateBattleUI(data) {
         const players = data.players;
         const playerIds = Object.keys(players);
@@ -370,7 +326,6 @@
         listDiv.innerHTML = "";
         const targetSelect = document.getElementById('target-select');
         targetSelect.innerHTML = "";
-
         playerIds.forEach(id => {
             const p = players[id];
             const card = document.createElement('div');
@@ -386,11 +341,9 @@
                 targetSelect.appendChild(opt);
             }
         });
-
         const isMyTurn = data.turn === myId && !players[myId].isOut;
         document.getElementById('turn-msg').innerText = isMyTurn ? "YOUR TURN: SHOOT!" : `${players[data.turn]?.name} IS AIMING...`;
         document.getElementById('expose-open-btn').style.display = isMyTurn ? 'block' : 'none';
-
         const grid = document.getElementById('attack-grid');
         grid.innerHTML = "";
         chars.forEach(c => {
@@ -408,7 +361,6 @@
             grid.appendChild(k);
         });
     }
-
     async function attack(char) {
         const snap = await db.ref(`rooms/${roomId}`).get();
         const data = snap.val();
@@ -426,17 +378,14 @@
         });
         nextTurn(data, char, hitAny ? 'hit' : 'miss');
     }
-
     function backspace(type) {
         currentInput = currentInput.slice(0, -1);
         document.getElementById(type + '-word-view').innerText = currentInput;
     }
-
     function openExposeModal() {
         currentInput = "";
         document.getElementById('expose-word-view').innerText = "";
         document.getElementById('expose-modal').style.display = 'flex';
-        // モーダルのキーボードにもバイブス適用
         createKeyboard('expose-kb', (c) => {
             if (currentInput.length < 8) {
                 currentInput += c;
@@ -445,10 +394,9 @@
         });
     }
     function closeExposeModal() { document.getElementById('expose-modal').style.display = 'none'; }
-
     async function executeExpose() {
         const targetId = document.getElementById('target-select').value;
-        if (!targetId || !currentInput) return alert("SELECT TARGET & WORD!");
+        if (!targetId || !currentInput) return alert("SELECT TARGET!");
         const snap = await db.ref(`rooms/${roomId}`).get();
         const data = snap.val();
         const target = data.players[targetId];
@@ -461,7 +409,6 @@
         closeExposeModal();
         nextTurn(data, `[${currentInput}]`, 'hit');
     }
-
     function nextTurn(data, char, result) {
         const ids = Object.keys(data.players);
         const aliveIds = ids.filter(id => !data.players[id].isOut);
@@ -470,18 +417,14 @@
             return;
         }
         let nextIdx = (ids.indexOf(data.turn) + 1) % ids.length;
-        while (data.players[ids[nextIdx]].isOut) {
-            nextIdx = (nextIdx + 1) % ids.length;
-        }
+        while (data.players[ids[nextIdx]].isOut) { nextIdx = (nextIdx + 1) % ids.length; }
         db.ref(`rooms/${roomId}`).update({ turn: ids[nextIdx], [`usedChars/${char}`]: result });
     }
-
     function triggerShake() {
         const b = document.getElementById('main-body');
         b.classList.add('shake');
         setTimeout(() => b.classList.remove('shake'), 400);
     }
-
     function resetGame() {
         const roomRef = db.ref(`rooms/${roomId}`);
         roomRef.get().then(snap => {
@@ -498,7 +441,6 @@
             updates['turn'] = null;
             roomRef.update(updates);
             currentInput = "";
-            document.getElementById('setup-kb').innerHTML = "";
         });
     }
 </script>
