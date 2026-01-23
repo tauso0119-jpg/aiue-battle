@@ -87,6 +87,10 @@
         .key.hit { background: var(--neon-pink); color: white; border-color: white; box-shadow: 0 0 10px var(--neon-pink); }
         .key.miss { opacity: 0.2; }
         .key.active-key { border-color: var(--neon-cyan); color: var(--neon-cyan); background: #1a1a1a; box-shadow: inset 0 0 5px var(--neon-cyan); }
+        
+        /* 空白キー用スタイル */
+        .key.empty { background: transparent; border: none; visibility: hidden; }
+
         #player-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .player-card { background: #111; border-left: 4px solid #444; padding: 10px; font-size: 0.85rem; border-radius: 4px; }
         .player-card.active-turn { border-left-color: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); background: #222; }
@@ -199,7 +203,7 @@
 </div>
 
 <script>
-    // ★重要: ここにあなたのFirebase設定を埋め込みました！
+    // ★重要: あなたのFirebase設定です
     const firebaseConfig = {
       apiKey: "AIzaSyBpVZkp8eaTwyove6n3i9SE0asIUbYKmjY",
       authDomain: "aiue-battle-online.firebaseapp.com",
@@ -213,7 +217,21 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let roomId, myId, myName, currentInput = "";
-    const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんー".split("");
+
+    // ★修正: レイアウトを制御するために空白(null)を混ぜた配列にします
+    const charLayout = [
+        "あ", "い", "う", "え", "お",
+        "か", "き", "く", "け", "こ",
+        "さ", "し", "す", "せ", "そ",
+        "た", "ち", "つ", "て", "と",
+        "な", "に", "ぬ", "ね", "の",
+        "は", "ひ", "ふ", "へ", "ほ",
+        "ま", "み", "む", "め", "も",
+        "や", "ゆ", "よ", null, null, // やゆよ + 改行(空白2つ)
+        "ら", "り", "る", "れ", "ろ", // ら行単独
+        "わ", "を", "ん", "ー", null  // わをんー
+    ];
+
     const genres = ["動物", "食べ物", "スポーツ", "国名", "乗り物", "体の一部", "文房具", "都道府県", "学校にあるもの", "キャラクター", "アニメ", "楽器", "虫", "魚", "家電", "冬のもの", "有名人"];
 
     function showScreen(id) {
@@ -225,17 +243,35 @@
         document.querySelectorAll('.login-sub-screen').forEach(s => s.classList.remove('active'));
         document.getElementById('login-' + type).classList.add('active');
     }
-    function createKeyboard(containerId, callback) {
+
+    // ★修正: 新しいレイアウトに対応したキーボード生成
+    function createKeyboard(containerId, callback, usedChars = {}, isMyTurn = true) {
         const container = document.getElementById(containerId);
         container.innerHTML = "";
-        chars.forEach(c => {
+        charLayout.forEach(c => {
             const k = document.createElement('div');
-            k.className = 'key';
-            k.innerText = c;
-            k.onclick = (e) => { e.preventDefault(); k.classList.add('key-flash'); setTimeout(() => k.classList.remove('key-flash'), 300); callback(c); };
+            if (c === null) {
+                k.className = 'key empty';
+            } else {
+                k.className = 'key';
+                k.innerText = c;
+                // バトル中の状態(hit/miss)反映用
+                if (usedChars[c]) {
+                    k.classList.add(usedChars[c]);
+                } else if (isMyTurn) {
+                    k.classList.add('active-key');
+                    k.onclick = (e) => { 
+                        e.preventDefault(); 
+                        k.classList.add('key-flash'); 
+                        setTimeout(() => k.classList.remove('key-flash'), 300); 
+                        callback(c); 
+                    };
+                }
+            }
             container.appendChild(k);
         });
     }
+
     function joinRoom(type) {
         roomId = document.getElementById(type + '-room-id').value.trim();
         myName = document.getElementById(type + '-name').value.trim();
@@ -265,7 +301,12 @@
                 showScreen('setup-screen');
                 document.getElementById('genre-display').innerText = `お題: ${data.config.genre}`;
                 if (document.getElementById('setup-kb').innerHTML === "") {
-                    createKeyboard('setup-kb', (c) => { if (currentInput.length < 8) { currentInput += c; document.getElementById('setup-word-view').innerText = currentInput; } });
+                    createKeyboard('setup-kb', (c) => { 
+                        if (currentInput.length < 8) { 
+                            currentInput += c; 
+                            document.getElementById('setup-word-view').innerText = currentInput; 
+                        } 
+                    });
                 }
                 const allReady = playerIds.length >= 2 && playerIds.every(id => players[id].isReady);
                 if (allReady) { db.ref(`rooms/${roomId}/config`).update({ status: 'playing' }); if (!data.turn) db.ref(`rooms/${roomId}`).update({ turn: playerIds[0] }); }
@@ -280,6 +321,7 @@
         db.ref(`rooms/${roomId}/config`).set({ status: 'setup', genre: newGenre });
     }
     function confirmSecretWord() { if (currentInput.length === 0) return; db.ref(`rooms/${roomId}/players/${myId}`).update({ word: currentInput, isReady: true }); currentInput = ""; }
+    
     function updateBattleUI(data) {
         const players = data.players;
         const playerIds = Object.keys(players);
@@ -288,6 +330,7 @@
         listDiv.innerHTML = "";
         const targetSelect = document.getElementById('target-select');
         targetSelect.innerHTML = "";
+        
         playerIds.forEach(id => {
             const p = players[id];
             const card = document.createElement('div');
@@ -297,19 +340,15 @@
             listDiv.appendChild(card);
             if (id !== myId && !p.isOut) { const opt = document.createElement('option'); opt.value = id; opt.innerText = p.name; targetSelect.appendChild(opt); }
         });
+
         const isMyTurn = data.turn === myId && !players[myId].isOut;
         document.getElementById('turn-msg').innerText = isMyTurn ? "あなたの番！" : `${players[data.turn]?.name}の番`;
         document.getElementById('expose-open-btn').style.display = isMyTurn ? 'block' : 'none';
-        const grid = document.getElementById('attack-grid');
-        grid.innerHTML = "";
-        chars.forEach(c => {
-            const k = document.createElement('div');
-            k.className = `key ${data.usedChars?.[c] || ''}`;
-            k.innerText = c;
-            if (isMyTurn && !data.usedChars?.[c]) { k.onclick = () => { attack(c); }; k.classList.add('active-key'); }
-            grid.appendChild(k);
-        });
+
+        // バトル画面のキーボードを新しいレイアウトで更新
+        createKeyboard('attack-grid', (c) => attack(c), data.usedChars || {}, isMyTurn);
     }
+
     async function attack(char) {
         const snap = await db.ref(`rooms/${roomId}`).get();
         const data = snap.val();
@@ -327,11 +366,19 @@
         nextTurn(data, char, hitAny ? 'hit' : 'miss');
     }
     function backspace(type) { currentInput = currentInput.slice(0, -1); document.getElementById(type + '-word-view').innerText = currentInput; }
+    
     function openExposeModal() {
         currentInput = ""; document.getElementById('expose-word-view').innerText = ""; document.getElementById('expose-modal').style.display = 'flex';
-        createKeyboard('expose-kb', (c) => { if (currentInput.length < 8) { currentInput += c; document.getElementById('expose-word-view').innerText = currentInput; } });
+        // モーダルのキーボードも新しいレイアウトで生成
+        createKeyboard('expose-kb', (c) => { 
+            if (currentInput.length < 8) { 
+                currentInput += c; 
+                document.getElementById('expose-word-view').innerText = currentInput; 
+            } 
+        });
     }
     function closeExposeModal() { document.getElementById('expose-modal').style.display = 'none'; }
+    
     async function executeExpose() {
         const targetId = document.getElementById('target-select').value;
         const snap = await db.ref(`rooms/${roomId}`).get();
@@ -355,6 +402,8 @@
             Object.keys(players).forEach(id => { updates[`players/${id}/isReady`] = false; updates[`players/${id}/isOut`] = false; updates[`players/${id}/hits`] = []; updates[`players/${id}/word`] = ""; });
             updates['config'] = { status: 'waiting', genre: '---' }; updates['usedChars'] = null; updates['turn'] = null;
             db.ref(`rooms/${roomId}`).update(updates); currentInput = "";
+            // キーボードをクリアして再生成可能にする
+            document.getElementById('setup-kb').innerHTML = "";
         });
     }
 </script>
