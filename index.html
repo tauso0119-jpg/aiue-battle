@@ -92,7 +92,7 @@
         #player-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .player-card { background: #111; border-left: 4px solid #444; padding: 10px; font-size: 0.85rem; border-radius: 4px; }
         .player-card.active-turn { border-left-color: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); background: #222; }
-        .player-card.eliminated { border-left-color: var(--danger); opacity: 0.4; }
+        .player-card.eliminated { border-left-color: var(--danger); opacity: 0.4; background: #2a0000; }
         
         .input-display {
             background: #000; border-bottom: 3px solid var(--neon-pink);
@@ -107,7 +107,6 @@
 
         #lobby-list { list-style: none; padding: 0; text-align: left; }
         #lobby-list li { padding: 10px; border-bottom: 1px solid #222; color: var(--neon-cyan); font-weight: bold; }
-        .version-tag { position: fixed; bottom: 5px; right: 10px; font-size: 0.7rem; color: #444; }
 
         .modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -117,17 +116,16 @@
         }
         .modal-content { width: 100%; max-width: 450px; padding-top: 20px; }
 
-        /* 特大演出用 */
         #flash-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: none; justify-content: center; align-items: center;
             background: rgba(255, 0, 255, 0.3); z-index: 2000; pointer-events: none;
         }
         .huge-text {
-            font-size: 4rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px var(--neon-pink);
-            animation: bounce 0.5s infinite alternate;
+            font-size: 3rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px var(--neon-pink);
+            text-align: center; animation: bounce 0.5s infinite alternate;
         }
-        @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.2); } }
+        @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
         
         .shake { animation: shake-anim 0.4s ease-in-out; }
         @keyframes shake-anim {
@@ -158,7 +156,7 @@
         <div id="login-create" class="login-sub-screen">
             <div class="panel">
                 <h3 style="color:var(--neon-cyan); margin-top:0;">ルーム新規作成</h3>
-                <input type="text" id="create-name" placeholder="名前" maxlength="8">
+                <input type="text" id="create-name" placeholder="あなたの名前" maxlength="8">
                 <input type="text" id="create-room-id" placeholder="ルーム番号" style="margin-top:10px;">
                 <button onclick="joinRoom('create')" style="margin-top:20px;">作成する</button>
                 <button onclick="showLoginFlow('main')" style="border-color:#666; color:#666;">もどる</button>
@@ -167,8 +165,8 @@
         <div id="login-join" class="login-sub-screen">
             <div class="panel">
                 <h3 style="color:var(--neon-pink); margin-top:0;">ルームに参加</h3>
-                <input type="text" id="join-name" placeholder="名前" maxlength="8">
-                <input type="text" id="join-room-id" placeholder="ルーム番号" style="margin-top:10px;">
+                <input type="text" id="join-name" placeholder="あなたの名前" maxlength="8">
+                <input type="text" id="join-room-id" placeholder="教えてもらった番号" style="margin-top:10px;">
                 <button onclick="joinRoom('join')" style="margin-top:20px;">参加する</button>
                 <button onclick="showLoginFlow('main')" style="border-color:#666; color:#666;">もどる</button>
             </div>
@@ -178,10 +176,10 @@
     <div id="lobby-screen" class="screen">
         <div class="room-display">ルーム: <span class="current-room-text">----</span></div>
         <div class="panel" style="text-align:center">
-            <h3 style="color:var(--neon-pink); margin-top:0;">待機中...</h3>
-            <p>人数: <span id="player-count">0</span> / 10</p>
+            <h3 style="color:var(--neon-pink); margin-top:0;">ロビー待機中</h3>
+            <p>現在の人数: <span id="player-count">0</span> / 10</p>
             <ul id="lobby-list"></ul>
-            <button id="start-btn" onclick="startGameSession()" style="margin-top:20px;">ゲーム開始</button>
+            <button id="start-btn" onclick="startGameSession()" style="margin-top:20px;">ゲームを開始</button>
         </div>
     </div>
 
@@ -189,11 +187,12 @@
         <div class="room-display">ルーム: <span class="current-room-text">----</span></div>
         <div class="panel" style="text-align:center">
             <div id="genre-display" class="genre-badge">お題: ---</div>
+            <p style="font-size:0.8rem; margin-bottom:5px;">自分の言葉を入力(最大8文字)</p>
             <div class="input-display" id="setup-word-view"></div>
             <div class="grid" id="setup-kb"></div>
             <div style="display:flex; gap:10px; margin-top:15px;">
                 <button onclick="backspace('setup')" style="flex:1">消す</button>
-                <button id="ready-btn" onclick="confirmSecretWord()" style="flex:2">決定！</button>
+                <button id="ready-btn" onclick="confirmSecretWord()" style="flex:2">準備完了！</button>
             </div>
         </div>
     </div>
@@ -204,14 +203,14 @@
         <div id="player-list"></div>
         <div id="turn-msg" style="text-align:center; color:var(--neon-yellow); font-weight:bold; margin:10px 0;"></div>
         <div class="grid" id="attack-grid"></div>
-        <button id="expose-open-btn" style="border-color:var(--neon-pink); color:var(--neon-pink); margin-top:15px;" onclick="openExposeModal()">単語をあばく</button>
+        <button id="expose-open-btn" style="border-color:var(--neon-pink); color:var(--neon-pink); margin-top:15px;" onclick="openExposeModal()">【逆転】単語をあばく</button>
         <button id="reset-btn" style="display:none; margin-top:15px;" onclick="resetGame()">もう一度遊ぶ</button>
     </div>
 </div>
 
 <div id="expose-modal" class="modal">
     <div class="modal-content">
-        <h2 style="color:var(--neon-pink); text-align:center; margin-top:0;">狙い撃つ</h2>
+        <h2 style="color:var(--neon-pink); text-align:center; margin-top:0;">SNIPE SYSTEM</h2>
         <div class="panel" style="border-color:var(--neon-pink); margin-bottom:10px;">
             <p style="margin-top:0; font-size:0.8rem;">ターゲットを選択：</p>
             <select id="target-select" onchange="updateTargetPreview()" style="width:100%; padding:12px; margin-bottom:10px; background:#222; color:#fff; border:1px solid var(--neon-pink); font-size:1.1rem;"></select>
@@ -220,7 +219,7 @@
         <div class="input-display" id="expose-word-view"></div>
         <div class="grid" id="expose-kb"></div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; width:100%; margin-top:20px;">
-            <button onclick="closeExposeModal()">キャンセル</button>
+            <button onclick="closeExposeModal()" style="border-color:#666; color:#666;">キャンセル</button>
             <button onclick="backspace('expose')">消す</button>
             <button style="border-color:var(--neon-pink); color:var(--neon-pink); grid-column: span 2;" onclick="executeExpose()">SHOOT! (決定)</button>
         </div>
@@ -228,6 +227,7 @@
 </div>
 
 <script>
+    // --- Firebase設定 ---
     const firebaseConfig = {
       apiKey: "AIzaSyBpVZkp8eaTwyove6n3i9SE0asIUbYKmjY",
       authDomain: "aiue-battle-online.firebaseapp.com",
@@ -284,7 +284,7 @@
     function joinRoom(type) {
         roomId = document.getElementById(type + '-room-id').value.trim();
         myName = document.getElementById(type + '-name').value.trim();
-        if (!roomId || !myName) return alert("入力してね");
+        if (!roomId || !myName) return alert("名前と番号を入力してね");
         myId = Math.random().toString(36).substring(2, 10);
         document.querySelectorAll('.current-room-text').forEach(el => el.innerText = roomId);
         db.ref(`rooms/${roomId}/players/${myId}`).set({ name: myName, isReady: false, isOut: false, hits: [] });
@@ -318,8 +318,16 @@
                 if (allReady) { db.ref(`rooms/${roomId}/config`).update({ status: 'playing' }); if (!data.turn) db.ref(`rooms/${roomId}`).update({ turn: playerIds[0] }); }
                 if (players[myId]?.isReady) { document.getElementById('ready-btn').innerText = "準備OK"; document.getElementById('ready-btn').disabled = true; }
             }
-            if (status === 'playing') { showScreen('battle-screen'); updateBattleUI(data); }
-            if (status === 'finished') { document.getElementById('reset-btn').style.display = 'block'; document.getElementById('turn-msg').innerText = "終了！"; }
+            if (status === 'playing') { 
+                showScreen('battle-screen'); 
+                updateBattleUI(data); 
+                if (players[myId].isOut) { document.getElementById('turn-msg').innerText = "脱落しました... 戦いを見守りましょう"; }
+            }
+            if (status === 'finished') { 
+                document.getElementById('reset-btn').style.display = 'block'; 
+                const winnerId = Object.keys(players).find(id => !players[id].isOut);
+                document.getElementById('turn-msg').innerText = "終了！ 勝者: " + (players[winnerId]?.name || "なし");
+            }
         });
     }
 
@@ -339,14 +347,19 @@
             const p = players[id]; const card = document.createElement('div');
             card.className = `player-card ${id === data.turn ? 'active-turn' : ''} ${p.isOut ? 'eliminated' : ''}`;
             const display = p.word.split("").map(c => (p.hits && p.hits.includes(c)) ? `<span style="color:var(--neon-pink)">${c}</span>` : (id === myId ? c : "？")).join("");
-            card.innerHTML = `<strong>${p.name}</strong><br>[ ${display} ]`;
+            card.innerHTML = `<strong>${p.name}</strong><br>[ ${display} ]${p.isOut ? ' (脱落)' : ''}`;
             listDiv.appendChild(card);
         });
 
         const isMyTurn = data.turn === myId && !players[myId].isOut;
-        document.getElementById('turn-msg').innerText = isMyTurn ? "あなたの番！" : `${players[data.turn]?.name}の番`;
-        document.getElementById('expose-open-btn').style.display = isMyTurn ? 'block' : 'none';
-        createKeyboard('attack-grid', (c) => attack(c), data.usedChars || {}, isMyTurn);
+        if (!players[myId].isOut) {
+            document.getElementById('turn-msg').innerText = isMyTurn ? "あなたの番！" : `${players[data.turn]?.name}の番`;
+            document.getElementById('expose-open-btn').style.display = isMyTurn ? 'block' : 'none';
+            createKeyboard('attack-grid', (c) => attack(c), data.usedChars || {}, isMyTurn);
+        } else {
+            document.getElementById('expose-open-btn').style.display = 'none';
+            createKeyboard('attack-grid', null, data.usedChars || {}, false);
+        }
     }
 
     async function attack(char) {
@@ -383,10 +396,10 @@
 
     function updateTargetPreview() {
         const targetId = document.getElementById('target-select').value;
-        if (!targetId) return;
+        if (!targetId) { document.getElementById('target-word-preview').innerText = ""; return; }
         const p = roomDataGlobal.players[targetId];
         const display = p.word.split("").map(c => (p.hits && p.hits.includes(c)) ? c : "？").join(" ");
-        document.getElementById('target-word-preview').innerText = `現在の状況: ${display}`;
+        document.getElementById('target-word-preview').innerText = `ターゲット: ${display}`;
     }
 
     async function executeExpose() {
@@ -398,11 +411,11 @@
         if (target.word === currentInput) {
             db.ref(`rooms/${roomId}/players/${targetId}`).update({ isOut: true, hits: target.word.split("") });
             showCelebration(target.name + "を暴いた！！");
-            triggerShake();
         } else {
             db.ref(`rooms/${roomId}/players/${myId}`).update({ isOut: true });
-            showCelebration("失敗... 自爆脱落！", true);
+            showCelebration("あばき失敗！自爆脱落...", true);
         }
+        triggerShake();
         closeExposeModal(); nextTurn(data, `[${currentInput}]`, 'hit');
     }
 
@@ -410,9 +423,9 @@
         const overlay = document.getElementById('flash-overlay');
         const text = document.getElementById('flash-message');
         text.innerText = msg;
-        overlay.style.background = isFail ? "rgba(255, 0, 0, 0.5)" : "rgba(0, 255, 255, 0.5)";
+        overlay.style.background = isFail ? "rgba(255, 0, 0, 0.6)" : "rgba(0, 255, 255, 0.6)";
         overlay.style.display = "flex";
-        setTimeout(() => { overlay.style.display = "none"; }, 2000);
+        setTimeout(() => { overlay.style.display = "none"; }, 2500);
     }
 
     function closeExposeModal() { document.getElementById('expose-modal').style.display = 'none'; }
@@ -421,12 +434,21 @@
     function nextTurn(data, char, result) {
         const ids = Object.keys(data.players);
         const aliveIds = ids.filter(id => !data.players[id].isOut);
-        if (aliveIds.length <= 1) { db.ref(`rooms/${roomId}/config`).update({ status: 'finished' }); return; }
+        
+        // 勝敗が決まったかチェック
+        if (aliveIds.length <= 1) { 
+            db.ref(`rooms/${roomId}/config`).update({ status: 'finished' }); 
+            return; 
+        }
+
+        // 次の生存者へターンを回す
         let nextIdx = (ids.indexOf(data.turn) + 1) % ids.length;
         while (data.players[ids[nextIdx]].isOut) { nextIdx = (nextIdx + 1) % ids.length; }
         db.ref(`rooms/${roomId}`).update({ turn: ids[nextIdx], [`usedChars/${char}`]: result });
     }
+
     function triggerShake() { const b = document.getElementById('main-body'); b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 400); }
+    
     function resetGame() {
         db.ref(`rooms/${roomId}`).get().then(snap => {
             const players = snap.val().players; const updates = {};
