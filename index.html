@@ -183,10 +183,15 @@
             <div id="genre-display" class="genre-badge">お題: ---</div>
             <p style="font-size:0.8rem;">自分の言葉をセットせよ(最大8文字)</p>
             <div class="input-display" id="setup-word-view"></div>
-            <div class="grid" id="setup-kb"></div>
-            <div style="display:flex; gap:10px; margin-top:15px;">
-                <button onclick="backspace('setup')" style="flex:1">消す</button>
-                <button id="ready-btn" onclick="confirmSecretWord()" style="flex:2">決定</button>
+            <div id="setup-controls">
+                <div class="grid" id="setup-kb"></div>
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button onclick="backspace('setup')" style="flex:1">消す</button>
+                    <button id="ready-btn" onclick="confirmSecretWord()" style="flex:2">決定</button>
+                </div>
+            </div>
+            <div id="setup-wait-msg" style="display:none; margin-top:20px;">
+                <h3 style="color:var(--neon-pink); animation: pulse 1s infinite alternate;">他のプレイヤーの入力待ち...</h3>
             </div>
         </div>
     </div>
@@ -235,7 +240,7 @@
     const db = firebase.database();
     let roomId, myId, myName, currentInput = "";
     let roomDataGlobal = null;
-    let alreadyShownOutMsg = false; // 脱落メッセージの重複表示を防ぐ
+    let alreadyShownOutMsg = false;
 
     const charLayout = [
         "あ", "い", "う", "え", "お", "か", "き", "く", "け", "こ",
@@ -312,12 +317,24 @@
             if (status === 'setup') {
                 showScreen('setup-screen');
                 document.getElementById('genre-display').innerText = `お題: ${data.config.genre}`;
-                if (document.getElementById('setup-kb').innerHTML === "") {
-                    createKeyboard('setup-kb', (c) => { if (currentInput.length < 8) { currentInput += c; document.getElementById('setup-word-view').innerText = currentInput; } });
+                
+                // 待機中表示の制御
+                if (players[myId]?.isReady) {
+                    document.getElementById('setup-controls').style.display = 'none';
+                    document.getElementById('setup-wait-msg').style.display = 'block';
+                } else {
+                    document.getElementById('setup-controls').style.display = 'block';
+                    document.getElementById('setup-wait-msg').style.display = 'none';
+                    if (document.getElementById('setup-kb').innerHTML === "") {
+                        createKeyboard('setup-kb', (c) => { if (currentInput.length < 8) { currentInput += c; document.getElementById('setup-word-view').innerText = currentInput; } });
+                    }
                 }
+
                 const allReady = playerIds.length >= 2 && playerIds.every(id => players[id].isReady);
-                if (allReady) { db.ref(`rooms/${roomId}/config`).update({ status: 'playing' }); if (!data.turn) db.ref(`rooms/${roomId}`).update({ turn: playerIds[0] }); }
-                if (players[myId]?.isReady) { document.getElementById('ready-btn').innerText = "完了"; document.getElementById('ready-btn').disabled = true; }
+                if (allReady) { 
+                    db.ref(`rooms/${roomId}/config`).update({ status: 'playing' }); 
+                    if (!data.turn) db.ref(`rooms/${roomId}`).update({ turn: playerIds[0] }); 
+                }
             }
             if (status === 'playing') { 
                 showScreen('battle-screen'); 
@@ -336,7 +353,11 @@
         db.ref(`rooms/${roomId}/config`).set({ status: 'setup', genre: newGenre });
     }
 
-    function confirmSecretWord() { if (currentInput.length === 0) return; db.ref(`rooms/${roomId}/players/${myId}`).update({ word: currentInput, isReady: true }); currentInput = ""; }
+    function confirmSecretWord() { 
+        if (currentInput.length === 0) return; 
+        db.ref(`rooms/${roomId}/players/${myId}`).update({ word: currentInput, isReady: true }); 
+        currentInput = ""; 
+    }
     
     function updateBattleUI(data) {
         const players = data.players; const playerIds = Object.keys(players);
@@ -435,11 +456,22 @@
     function nextTurn(data, char, result) {
         const ids = Object.keys(data.players);
         const aliveIds = ids.filter(id => !data.players[id].isOut);
-        if (aliveIds.length <= 1) { db.ref(`rooms/${roomId}/config`).update({ status: 'finished' }); return; }
-        let nextIdx = (ids.indexOf(data.turn) + 1) % ids.length;
-        while (data.players[ids[nextIdx]].isOut) { nextIdx = (nextIdx + 1) % ids.length; }
+        if (aliveIds.length <= 1) { 
+            db.ref(`rooms/${roomId}/config`).update({ status: 'finished' }); 
+            return; 
+        }
+
+        // 脱落者を自動除外して順番を回す
+        let currentIdx = ids.indexOf(data.turn);
+        let nextIdx = (currentIdx + 1) % ids.length;
+        
+        while (data.players[ids[nextIdx]].isOut) {
+            nextIdx = (nextIdx + 1) % ids.length;
+        }
+        
         db.ref(`rooms/${roomId}`).update({ turn: ids[nextIdx], [`usedChars/${char}`]: result });
     }
+
     function triggerShake() { const b = document.getElementById('main-body'); b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 400); }
     
     function resetGame() {
