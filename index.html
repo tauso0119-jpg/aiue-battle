@@ -27,13 +27,13 @@
             touch-action: manipulation;
             overflow-x: hidden;
         }
-        #app { width: 100%; max-width: 500px; padding: 15px; box-sizing: border-box; position: relative; }
-        .screen { display: none; flex-direction: column; gap: 15px; }
+        #app { width: 100%; max-width: 500px; padding: 10px; box-sizing: border-box; position: relative; }
+        .screen { display: none; flex-direction: column; gap: 10px; }
         .active { display: flex; }
         .panel {
             background: rgba(255, 255, 255, 0.05);
             border: 2px solid var(--neon-cyan);
-            padding: 15px;
+            padding: 12px;
             border-radius: 10px;
             box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
             position: relative;
@@ -42,41 +42,47 @@
             text-align: center;
             color: var(--neon-cyan);
             text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
-            font-size: 2.2rem;
-            margin: 15px 0;
+            font-size: 2rem;
+            margin: 10px 0;
             letter-spacing: 3px;
             font-weight: 700;
         }
         .room-display {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--neon-cyan);
             text-align: right;
             margin-bottom: 5px;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             font-weight: bold;
         }
         .genre-badge {
             background: var(--neon-pink);
             color: white;
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 20px;
             font-weight: 900;
             display: inline-block;
-            margin: 10px 0;
-            font-size: 1.4rem;
+            margin: 5px 0;
+            font-size: 1.2rem;
             box-shadow: 0 0 10px var(--neon-pink);
         }
         button {
             width: 100%; background: transparent; color: var(--neon-cyan); border: 2px solid var(--neon-cyan);
-            padding: 15px; font-weight: bold; cursor: pointer; font-size: 1.1rem;
-            transition: 0.2s; margin-bottom: 10px;
+            padding: 12px; font-weight: bold; cursor: pointer; font-size: 1.1rem;
+            transition: 0.2s; margin-bottom: 8px;
         }
         button:active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); transform: scale(0.95); }
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+        
+        /* アクションエリアの調整 */
+        .action-area {
+            display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px;
+        }
+
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
         .key {
-            padding: 12px 0; font-size: 1.2rem; background: #111; border: 1px solid #333;
+            padding: 10px 0; font-size: 1.1rem; background: #111; border: 1px solid #333;
             color: #ccc; text-align: center; border-radius: 4px;
-            display: flex; justify-content: center; align-items: center; min-height: 50px;
+            display: flex; justify-content: center; align-items: center; min-height: 45px;
             transition: transform 0.05s, background 0.2s; user-select: none;
         }
         .key:active { transform: scale(0.85); background: var(--neon-cyan); color: #000; box-shadow: 0 0 25px var(--neon-cyan); }
@@ -90,15 +96,15 @@
         .key.active-key { border-color: var(--neon-cyan); color: var(--neon-cyan); background: #1a1a1a; box-shadow: inset 0 0 5px var(--neon-cyan); }
         .key.empty { background: transparent; border: none; visibility: hidden; }
 
-        #player-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .player-card { background: #111; border-left: 4px solid #444; padding: 10px; font-size: 0.85rem; border-radius: 4px; }
-        .player-card.active-turn { border-left-color: var(--neon-cyan); box-shadow: 0 0 15px var(--neon-cyan); background: #222; }
+        #player-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .player-card { background: #111; border-left: 4px solid #444; padding: 8px; font-size: 0.8rem; border-radius: 4px; }
+        .player-card.active-turn { border-left-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); background: #222; }
         .player-card.eliminated { border-left-color: var(--danger); opacity: 0.4; background: #2a0000; }
         
         .input-display {
             background: #000; border-bottom: 3px solid var(--neon-pink);
-            height: 50px; font-size: 1.8rem; display: flex; justify-content: center; align-items: center;
-            margin-bottom: 15px; letter-spacing: 4px; color: var(--neon-yellow);
+            height: 45px; font-size: 1.6rem; display: flex; justify-content: center; align-items: center;
+            margin-bottom: 10px; letter-spacing: 4px; color: var(--neon-yellow);
         }
         
         #flash-overlay {
@@ -107,7 +113,7 @@
             z-index: 2000; pointer-events: none; text-align: center;
         }
         .huge-text {
-            font-size: 3.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px #000;
+            font-size: 3rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px #000;
             animation: bounce 0.4s infinite alternate;
         }
         @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
@@ -124,7 +130,7 @@
             justify-content: flex-start; align-items: center; z-index: 1000; padding: 20px; box-sizing: border-box;
             overflow-y: auto;
         }
-        .modal-content { width: 100%; max-width: 450px; padding-top: 20px; }
+        .modal-content { width: 100%; max-width: 450px; }
     </style>
 </head>
 <body id="main-body">
@@ -142,8 +148,8 @@
         <div id="login-create" class="screen">
             <div class="panel">
                 <h3>ルーム新規作成</h3>
-                <input type="text" id="create-name" placeholder="あなたの名前" maxlength="8" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--neon-cyan);">
-                <input type="text" id="create-room-id" placeholder="ルーム番号" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--neon-cyan); margin-top:10px;">
+                <input type="text" id="create-name" placeholder="あなたの名前" maxlength="8" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid var(--neon-cyan); box-sizing:border-box;">
+                <input type="text" id="create-room-id" placeholder="ルーム番号" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid var(--neon-cyan); margin-top:10px; box-sizing:border-box;">
                 <button onclick="joinRoom('create')" style="margin-top:20px;">作成する</button>
                 <button onclick="location.reload()" style="border-color:#666; color:#666;">もどる</button>
             </div>
@@ -151,8 +157,8 @@
         <div id="login-join" class="screen">
             <div class="panel">
                 <h3>ルームに参加</h3>
-                <input type="text" id="join-name" placeholder="あなたの名前" maxlength="8" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--neon-cyan);">
-                <input type="text" id="join-room-id" placeholder="ルーム番号" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--neon-cyan); margin-top:10px;">
+                <input type="text" id="join-name" placeholder="あなたの名前" maxlength="8" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid var(--neon-cyan); box-sizing:border-box;">
+                <input type="text" id="join-room-id" placeholder="ルーム番号" style="width:100%; padding:12px; background:#000; color:#fff; border:1px solid var(--neon-cyan); margin-top:10px; box-sizing:border-box;">
                 <button onclick="joinRoom('join')" style="margin-top:20px;">参加する</button>
                 <button onclick="location.reload()" style="border-color:#666; color:#666;">もどる</button>
             </div>
@@ -173,15 +179,17 @@
     <div id="setup-screen" class="screen">
         <div class="panel" style="text-align:center">
             <div id="genre-display" class="genre-badge">お題: ---</div>
-            <p style="font-size:0.8rem;">自分の言葉をセットせよ(最大8文字)</p>
+            <p style="font-size:0.8rem; margin:5px 0;">自分の言葉をセット(最大8文字)</p>
             <div class="input-display" id="setup-word-view"></div>
+            
             <div id="setup-controls">
-                <div class="grid" id="setup-kb"></div>
-                <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button onclick="backspace('setup')" style="flex:1">消す</button>
-                    <button id="ready-btn" onclick="confirmSecretWord()" style="flex:2">決定</button>
+                <div class="action-area">
+                    <button id="ready-btn" onclick="confirmSecretWord()" style="border-color:var(--neon-yellow); color:var(--neon-yellow);">決定・準備完了！</button>
+                    <button onclick="backspace('setup')" style="border-color:#666; color:#666;">1文字消す</button>
                 </div>
+                <div class="grid" id="setup-kb"></div>
             </div>
+            
             <div id="setup-wait-msg" style="display:none; margin-top:20px;">
                 <h3 style="color:var(--neon-pink);">他のプレイヤーを待機中...</h3>
             </div>
@@ -191,33 +199,43 @@
     <div id="battle-screen" class="screen">
         <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
         <div id="battle-genre" class="genre-badge" style="align-self:center">お題: ---</div>
+        
         <div id="player-list"></div>
-        <div id="turn-msg" style="text-align:center; color:var(--neon-yellow); font-weight:bold; margin:10px 0;"></div>
+        <div id="turn-msg" style="text-align:center; color:var(--neon-yellow); font-weight:bold; margin-bottom:10px;"></div>
+
+        <div class="action-area">
+            <button id="expose-open-btn" style="border-color:var(--neon-pink); color:var(--neon-pink);" onclick="openExposeModal()">【一撃】ターゲットをあばく</button>
+            <button id="reset-btn" style="display:none; border-color:var(--neon-cyan); color:var(--neon-cyan);" onclick="resetToSetup()">次のゲームへ！</button>
+        </div>
+
         <div class="grid" id="attack-grid"></div>
-        <button id="expose-open-btn" style="border-color:var(--neon-pink); color:var(--neon-pink); margin-top:15px;" onclick="openExposeModal()">ターゲットをあばく</button>
-        <button id="reset-btn" style="display:none; margin-top:15px;" onclick="resetToSetup()">次のゲームへ！</button>
     </div>
 </div>
 
 <div id="expose-modal" class="modal">
     <div class="modal-content">
-        <h2 style="color:var(--neon-pink); text-align:center;">SNIPE SYSTEM</h2>
+        <h2 style="color:var(--neon-pink); text-align:center; margin-top:0;">SNIPE SYSTEM</h2>
         <div class="panel" style="border-color:var(--neon-pink); margin-bottom:10px;">
-            <p style="margin-top:0; font-size:0.8rem;">狙う相手を選択：</p>
-            <select id="target-select" onchange="updateTargetPreview()" style="width:100%; padding:12px; background:#222; color:#fff; border:1px solid var(--neon-pink); font-size:1.1rem;"></select>
-            <div id="target-word-preview" style="margin-top:10px; font-size:1.4rem; color:var(--neon-cyan); letter-spacing:2px; text-align:center;"></div>
+            <p style="margin:0 0 5px 0; font-size:0.8rem;">狙う相手を選択：</p>
+            <select id="target-select" onchange="updateTargetPreview()" style="width:100%; padding:10px; background:#222; color:#fff; border:1px solid var(--neon-pink); font-size:1rem;"></select>
+            <div id="target-word-preview" style="margin-top:10px; font-size:1.2rem; color:var(--neon-cyan); letter-spacing:2px; text-align:center;"></div>
         </div>
         <div class="input-display" id="expose-word-view"></div>
-        <div class="grid" id="expose-kb"></div>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; width:100%; margin-top:20px;">
-            <button onclick="closeExposeModal()">CANCEL</button>
-            <button onclick="backspace('expose')">DEL</button>
-            <button style="border-color:var(--neon-pink); color:var(--neon-pink); grid-column: span 2;" onclick="executeExpose()">FIRE! (決定)</button>
+        
+        <div class="action-area">
+            <button style="border-color:var(--neon-pink); color:var(--neon-pink); font-size: 1.3rem;" onclick="executeExpose()">FIRE! (あばく)</button>
+            <div style="display:flex; gap:5px;">
+                <button onclick="backspace('expose')" style="flex:1">DEL</button>
+                <button onclick="closeExposeModal()" style="flex:1; border-color:#666; color:#666;">CANCEL</button>
+            </div>
         </div>
+
+        <div class="grid" id="expose-kb"></div>
     </div>
 </div>
 
 <script>
+    // --- Firebase設定 ---
     const firebaseConfig = {
       apiKey: "AIzaSyBpVZkp8eaTwyove6n3i9SE0asIUbYKmjY",
       authDomain: "aiue-battle-online.firebaseapp.com",
@@ -244,7 +262,6 @@
 
     const genres = ["動物", "食べ物", "スポーツ", "国名", "乗り物", "体の一部", "文房具", "都道府県", "学校にあるもの", "キャラクター", "アニメ", "楽器", "虫", "魚", "家電", "冬のもの", "有名人"];
 
-    // ★リロード復帰機能：ページ読み込み時に保存された情報をチェック
     window.onload = () => {
         const savedRoomId = localStorage.getItem('ws_roomId');
         const savedMyId = localStorage.getItem('ws_myId');
@@ -291,12 +308,9 @@
         myName = document.getElementById(type + '-name').value.trim();
         if (!roomId || !myName) return alert("名前と番号を入力！");
         myId = Math.random().toString(36).substring(2, 10);
-        
-        // ★情報を保存
         localStorage.setItem('ws_roomId', roomId);
         localStorage.setItem('ws_myId', myId);
         localStorage.setItem('ws_myName', myName);
-
         document.querySelectorAll('.current-room-text').forEach(el => el.innerText = roomId);
         db.ref(`rooms/${roomId}/players/${myId}`).set({ name: myName, isReady: false, isOut: false, hits: [] });
         db.ref(`rooms/${roomId}/players/${myId}`).onDisconnect().remove();
@@ -320,7 +334,6 @@
             const playerIds = Object.keys(players);
             const status = data.config?.status || 'waiting';
 
-            // ★自分が脱落した演出
             if (players[myId] && players[myId].isOut && !alreadyShownOutMsg) {
                 showCelebration("あばかれた！\n敗北...", true);
                 alreadyShownOutMsg = true;
@@ -381,7 +394,7 @@
             const p = players[id]; const card = document.createElement('div');
             card.className = `player-card ${id === data.turn ? 'active-turn' : ''} ${p.isOut ? 'eliminated' : ''}`;
             const display = p.word.split("").map(c => (p.hits && p.hits.includes(c)) ? `<span style="color:var(--neon-pink)">${c}</span>` : (id === myId ? c : "？")).join("");
-            card.innerHTML = `<strong>${p.name}</strong><br>[ ${display} ]${p.isOut ? ' (DEAD)' : ''}`;
+            card.innerHTML = `<strong>${p.name}</strong> [ ${display} ]${p.isOut ? ' (DEAD)' : ''}`;
             listDiv.appendChild(card);
         });
 
@@ -453,7 +466,6 @@
         }
         triggerShake();
         closeExposeModal();
-        // ★修正点：あばきの成否にかかわらず次のプレイヤーへターンを渡す
         nextTurn(data, `[${currentInput}]`, 'hit');
     }
 
@@ -476,7 +488,6 @@
             db.ref(`rooms/${roomId}/config`).update({ status: 'finished' }); 
             return; 
         }
-
         let currentIdx = ids.indexOf(data.turn);
         let nextIdx = (currentIdx + 1) % ids.length;
         let safety = 0;
