@@ -47,14 +47,7 @@
             letter-spacing: 3px;
             font-weight: 700;
         }
-        .room-display {
-            font-size: 0.8rem;
-            color: var(--neon-cyan);
-            text-align: right;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
-            font-weight: bold;
-        }
+        .room-display { font-size: 0.8rem; color: var(--neon-cyan); text-align: right; margin-bottom: 5px; font-weight: bold; }
         .genre-badge {
             background: var(--neon-pink);
             color: white;
@@ -105,7 +98,7 @@
             z-index: 2000; pointer-events: none; text-align: center;
         }
         .huge-text {
-            font-size: 2.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px #000;
+            font-size: 2.2rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px #000;
             animation: bounce 0.4s infinite alternate; padding: 20px;
         }
         @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
@@ -288,8 +281,6 @@
         localStorage.setItem('ws_myId', myId);
         localStorage.setItem('ws_myName', myName);
         document.querySelectorAll('.current-room-text').forEach(el => el.innerText = roomId);
-        
-        // 参加時間を記録して順番を固定する
         const joinTime = Date.now();
         db.ref(`rooms/${roomId}/players/${myId}`).set({ name: myName, isReady: false, isOut: false, hits: [], joinedAt: joinTime });
         db.ref(`rooms/${roomId}/players/${myId}`).onDisconnect().remove();
@@ -312,7 +303,6 @@
             const players = data.players || {};
             const status = data.config?.status || 'waiting';
 
-            // ★実況中継システムの表示
             if (data.actionLog && data.actionLog.timestamp > Date.now() - 4000) {
                 showCelebration(data.actionLog.message, data.actionLog.isCritical);
             }
@@ -332,7 +322,6 @@
                     li.innerText = (id === playerIds[0] ? "👑 " : "⚔️ ") + players[id].name;
                     list.appendChild(li);
                 });
-                // ホスト（最初の人）だけが開始ボタンを押せる
                 document.getElementById('start-btn').style.display = (myId === playerIds[0]) ? 'block' : 'none';
             }
             if (status === 'setup') {
@@ -362,9 +351,11 @@
             if (status === 'playing') { 
                 showScreen('battle-screen'); 
                 updateBattleUI(data); 
+                document.getElementById('reset-btn').style.display = 'none';
             }
             if (status === 'finished') { 
-                document.getElementById('reset-btn').style.display = (myId === Object.keys(players).sort((a,b) => players[a].joinedAt - players[b].joinedAt)[0]) ? 'block' : 'none'; 
+                // ★全員にボタンを出す
+                document.getElementById('reset-btn').style.display = 'block'; 
                 const winnerId = Object.keys(players).find(id => !players[id].isOut);
                 document.getElementById('turn-msg').innerText = "Winner: " + (players[winnerId]?.name || "NONE");
             }
@@ -419,6 +410,7 @@
                 triggerShake();
             }
         });
+        // ターンを回す
         nextTurn(data, char, hitAny ? 'hit' : 'miss');
     }
 
@@ -434,13 +426,7 @@
         });
         updateTargetPreview();
         createKeyboard('expose-kb', (c) => { if (currentInput.length < 8) { currentInput += c; document.getElementById('expose-word-view').innerText = currentInput; } });
-        
-        // ★実況：あばこうとしていることを通知
-        db.ref(`rooms/${roomId}/actionLog`).set({ 
-            message: `${myName}が狙いを定めている...`, 
-            timestamp: Date.now(), 
-            isCritical: false 
-        });
+        db.ref(`rooms/${roomId}/actionLog`).set({ message: `${myName}が狙いを定めている...`, timestamp: Date.now(), isCritical: false });
     }
 
     function updateTargetPreview() {
@@ -458,24 +444,22 @@
         const data = snap.val();
         const target = data.players[targetId];
         let resultMsg = "";
-        let isSuccess = false;
         
         if (target.word === currentInput) {
             db.ref(`rooms/${roomId}/players/${targetId}`).update({ isOut: true, hits: target.word.split("") });
-            resultMsg = `${myName}が${target.name}を暴いた！成功！`;
-            isSuccess = true;
+            resultMsg = `${myName}が${target.name}を暴いた！`;
         } else {
             db.ref(`rooms/${roomId}/players/${myId}`).update({ isOut: true });
             resultMsg = `${myName}が失敗！自爆した...`;
-            isSuccess = false;
         }
         
-        // ★実況：結果を通知
         db.ref(`rooms/${roomId}/actionLog`).set({ message: resultMsg, timestamp: Date.now(), isCritical: true });
-        
         triggerShake();
         closeExposeModal();
-        nextTurn(data, `[${currentInput}]`, 'hit');
+        
+        // ★修正: あばく処理が終わった後に強制的に次のターンへ
+        const finalSnap = await db.ref(`rooms/${roomId}`).get();
+        nextTurn(finalSnap.val(), `[${currentInput}]`, 'hit');
     }
 
     function showCelebration(msg, isCritical) {
@@ -504,6 +488,7 @@
             nextIdx = (nextIdx + 1) % ids.length;
             safety++;
         }
+        // 同時に更新することで連続ターンを防ぐ
         db.ref(`rooms/${roomId}`).update({ turn: ids[nextIdx], [`usedChars/${char}`]: result });
     }
 
