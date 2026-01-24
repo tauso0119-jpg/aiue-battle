@@ -114,6 +114,11 @@
             justify-content: flex-start; align-items: center; z-index: 1000; padding: 20px; box-sizing: border-box;
             overflow-y: auto;
         }
+        /* 強制終了ボタン用：一番下に小さく配置 */
+        .force-quit-btn {
+            margin-top: 50px; border: none; color: #222; font-size: 0.6rem; 
+            text-decoration: underline; background: none; width: auto;
+        }
     </style>
 </head>
 <body id="main-body">
@@ -187,6 +192,7 @@
             <button id="reset-btn" style="display:none; border-color:var(--neon-cyan); color:var(--neon-cyan);" onclick="resetToSetup()">次のゲームへ！</button>
         </div>
         <div class="grid" id="attack-grid"></div>
+        <button class="force-quit-btn" onclick="terminateRoom()">Emergency Stop (Room Delete)</button>
     </div>
 </div>
 
@@ -295,10 +301,22 @@
         }
     }
 
+    // ★強制終了（ルーム削除）
+    function terminateRoom() {
+        if (confirm("本当にルームを解散して強制終了しますか？全員がログイン画面に戻ります。")) {
+            db.ref(`rooms/${roomId}`).remove();
+        }
+    }
+
     function listenToRoom() {
         db.ref(`rooms/${roomId}`).on('value', snap => {
             const data = snap.val();
-            if (!data) return;
+            // データが消されたら（強制終了）リロードしてログイン画面へ
+            if (!data) {
+                localStorage.clear();
+                location.reload();
+                return;
+            }
             roomDataGlobal = data;
             const players = data.players || {};
             const status = data.config?.status || 'waiting';
@@ -351,10 +369,8 @@
             if (status === 'playing') { 
                 showScreen('battle-screen'); 
                 updateBattleUI(data); 
-                document.getElementById('reset-btn').style.display = 'none';
             }
             if (status === 'finished') { 
-                // ★全員にボタンを出す
                 document.getElementById('reset-btn').style.display = 'block'; 
                 const winnerId = Object.keys(players).find(id => !players[id].isOut);
                 document.getElementById('turn-msg').innerText = "Winner: " + (players[winnerId]?.name || "NONE");
@@ -410,7 +426,6 @@
                 triggerShake();
             }
         });
-        // ターンを回す
         nextTurn(data, char, hitAny ? 'hit' : 'miss');
     }
 
@@ -457,7 +472,6 @@
         triggerShake();
         closeExposeModal();
         
-        // ★修正: あばく処理が終わった後に強制的に次のターンへ
         const finalSnap = await db.ref(`rooms/${roomId}`).get();
         nextTurn(finalSnap.val(), `[${currentInput}]`, 'hit');
     }
@@ -488,7 +502,6 @@
             nextIdx = (nextIdx + 1) % ids.length;
             safety++;
         }
-        // 同時に更新することで連続ターンを防ぐ
         db.ref(`rooms/${roomId}`).update({ turn: ids[nextIdx], [`usedChars/${char}`]: result });
     }
 
