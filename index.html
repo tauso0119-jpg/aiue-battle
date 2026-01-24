@@ -72,12 +72,7 @@
             transition: 0.2s; margin-bottom: 8px;
         }
         button:active { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); transform: scale(0.95); }
-        
-        /* アクションエリアの調整 */
-        .action-area {
-            display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px;
-        }
-
+        .action-area { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
         .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
         .key {
             padding: 10px 0; font-size: 1.1rem; background: #111; border: 1px solid #333;
@@ -95,29 +90,25 @@
         .key.miss { opacity: 0.2; }
         .key.active-key { border-color: var(--neon-cyan); color: var(--neon-cyan); background: #1a1a1a; box-shadow: inset 0 0 5px var(--neon-cyan); }
         .key.empty { background: transparent; border: none; visibility: hidden; }
-
         #player-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
         .player-card { background: #111; border-left: 4px solid #444; padding: 8px; font-size: 0.8rem; border-radius: 4px; }
         .player-card.active-turn { border-left-color: var(--neon-cyan); box-shadow: 0 0 10px var(--neon-cyan); background: #222; }
         .player-card.eliminated { border-left-color: var(--danger); opacity: 0.4; background: #2a0000; }
-        
         .input-display {
             background: #000; border-bottom: 3px solid var(--neon-pink);
             height: 45px; font-size: 1.6rem; display: flex; justify-content: center; align-items: center;
             margin-bottom: 10px; letter-spacing: 4px; color: var(--neon-yellow);
         }
-        
         #flash-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: none; justify-content: center; align-items: center;
             z-index: 2000; pointer-events: none; text-align: center;
         }
         .huge-text {
-            font-size: 3rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px #000;
-            animation: bounce 0.4s infinite alternate;
+            font-size: 2.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px #000;
+            animation: bounce 0.4s infinite alternate; padding: 20px;
         }
         @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
-        
         .shake { animation: shake-anim 0.4s ease-in-out; }
         @keyframes shake-anim {
             0%, 100% { transform: translateX(0); }
@@ -130,7 +121,6 @@
             justify-content: flex-start; align-items: center; z-index: 1000; padding: 20px; box-sizing: border-box;
             overflow-y: auto;
         }
-        .modal-content { width: 100%; max-width: 450px; }
     </style>
 </head>
 <body id="main-body">
@@ -181,7 +171,6 @@
             <div id="genre-display" class="genre-badge">お題: ---</div>
             <p style="font-size:0.8rem; margin:5px 0;">自分の言葉をセット(最大8文字)</p>
             <div class="input-display" id="setup-word-view"></div>
-            
             <div id="setup-controls">
                 <div class="action-area">
                     <button id="ready-btn" onclick="confirmSecretWord()" style="border-color:var(--neon-yellow); color:var(--neon-yellow);">決定・準備完了！</button>
@@ -189,7 +178,6 @@
                 </div>
                 <div class="grid" id="setup-kb"></div>
             </div>
-            
             <div id="setup-wait-msg" style="display:none; margin-top:20px;">
                 <h3 style="color:var(--neon-pink);">他のプレイヤーを待機中...</h3>
             </div>
@@ -199,21 +187,18 @@
     <div id="battle-screen" class="screen">
         <div class="room-display">ROOM: <span class="current-room-text">----</span></div>
         <div id="battle-genre" class="genre-badge" style="align-self:center">お題: ---</div>
-        
         <div id="player-list"></div>
         <div id="turn-msg" style="text-align:center; color:var(--neon-yellow); font-weight:bold; margin-bottom:10px;"></div>
-
         <div class="action-area">
             <button id="expose-open-btn" style="border-color:var(--neon-pink); color:var(--neon-pink);" onclick="openExposeModal()">【一撃】ターゲットをあばく</button>
             <button id="reset-btn" style="display:none; border-color:var(--neon-cyan); color:var(--neon-cyan);" onclick="resetToSetup()">次のゲームへ！</button>
         </div>
-
         <div class="grid" id="attack-grid"></div>
     </div>
 </div>
 
 <div id="expose-modal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content" style="width:100%; max-width:450px;">
         <h2 style="color:var(--neon-pink); text-align:center; margin-top:0;">SNIPE SYSTEM</h2>
         <div class="panel" style="border-color:var(--neon-pink); margin-bottom:10px;">
             <p style="margin:0 0 5px 0; font-size:0.8rem;">狙う相手を選択：</p>
@@ -221,7 +206,6 @@
             <div id="target-word-preview" style="margin-top:10px; font-size:1.2rem; color:var(--neon-cyan); letter-spacing:2px; text-align:center;"></div>
         </div>
         <div class="input-display" id="expose-word-view"></div>
-        
         <div class="action-area">
             <button style="border-color:var(--neon-pink); color:var(--neon-pink); font-size: 1.3rem;" onclick="executeExpose()">FIRE! (あばく)</button>
             <div style="display:flex; gap:5px;">
@@ -229,13 +213,11 @@
                 <button onclick="closeExposeModal()" style="flex:1; border-color:#666; color:#666;">CANCEL</button>
             </div>
         </div>
-
         <div class="grid" id="expose-kb"></div>
     </div>
 </div>
 
 <script>
-    // --- Firebase設定 ---
     const firebaseConfig = {
       apiKey: "AIzaSyBpVZkp8eaTwyove6n3i9SE0asIUbYKmjY",
       authDomain: "aiue-battle-online.firebaseapp.com",
@@ -245,13 +227,11 @@
       messagingSenderId: "1032584345696",
       appId: "1:1032584345696:web:aa3b9ceb4cfed976236b05"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     let roomId, myId, myName, currentInput = "";
     let roomDataGlobal = null;
     let alreadyShownOutMsg = false;
-
     const charLayout = [
         "あ", "い", "う", "え", "お", "か", "き", "く", "け", "こ",
         "さ", "し", "す", "せ", "そ", "た", "ち", "つ", "て", "と",
@@ -259,7 +239,6 @@
         "ま", "み", "む", "め", "も", "や", "ゆ", "よ", null, null,
         "ら", "り", "る", "れ", "ろ", "わ", "を", "ん", "ー", null
     ];
-
     const genres = ["動物", "食べ物", "スポーツ", "国名", "乗り物", "体の一部", "文房具", "都道府県", "学校にあるもの", "キャラクター", "アニメ", "楽器", "虫", "魚", "家電", "冬のもの", "有名人"];
 
     window.onload = () => {
@@ -267,9 +246,7 @@
         const savedMyId = localStorage.getItem('ws_myId');
         const savedMyName = localStorage.getItem('ws_myName');
         if (savedRoomId && savedMyId && savedMyName) {
-            roomId = savedRoomId;
-            myId = savedMyId;
-            myName = savedMyName;
+            roomId = savedRoomId; myId = savedMyId; myName = savedMyName;
             document.querySelectorAll('.current-room-text').forEach(el => el.innerText = roomId);
             listenToRoom();
         }
@@ -284,7 +261,6 @@
         document.getElementById('login-main').style.display = 'none';
         document.getElementById('login-' + type).classList.add('active');
     }
-
     function createKeyboard(containerId, callback, usedChars = {}, isMyTurn = true) {
         const container = document.getElementById(containerId);
         container.innerHTML = "";
@@ -312,7 +288,10 @@
         localStorage.setItem('ws_myId', myId);
         localStorage.setItem('ws_myName', myName);
         document.querySelectorAll('.current-room-text').forEach(el => el.innerText = roomId);
-        db.ref(`rooms/${roomId}/players/${myId}`).set({ name: myName, isReady: false, isOut: false, hits: [] });
+        
+        // 参加時間を記録して順番を固定する
+        const joinTime = Date.now();
+        db.ref(`rooms/${roomId}/players/${myId}`).set({ name: myName, isReady: false, isOut: false, hits: [], joinedAt: joinTime });
         db.ref(`rooms/${roomId}/players/${myId}`).onDisconnect().remove();
         listenToRoom();
     }
@@ -331,20 +310,30 @@
             if (!data) return;
             roomDataGlobal = data;
             const players = data.players || {};
-            const playerIds = Object.keys(players);
             const status = data.config?.status || 'waiting';
 
+            // ★実況中継システムの表示
+            if (data.actionLog && data.actionLog.timestamp > Date.now() - 4000) {
+                showCelebration(data.actionLog.message, data.actionLog.isCritical);
+            }
+
             if (players[myId] && players[myId].isOut && !alreadyShownOutMsg) {
-                showCelebration("あばかれた！\n敗北...", true);
                 alreadyShownOutMsg = true;
                 triggerShake();
             }
 
             if (status === 'waiting') {
                 showScreen('lobby-screen');
+                const playerIds = Object.keys(players).sort((a,b) => players[a].joinedAt - players[b].joinedAt);
                 document.getElementById('player-count').innerText = playerIds.length;
                 const list = document.getElementById('lobby-list'); list.innerHTML = "";
-                playerIds.forEach(id => { const li = document.createElement('li'); li.innerText = `準備中: ${players[id].name}`; list.appendChild(li); });
+                playerIds.forEach(id => {
+                    const li = document.createElement('li');
+                    li.innerText = (id === playerIds[0] ? "👑 " : "⚔️ ") + players[id].name;
+                    list.appendChild(li);
+                });
+                // ホスト（最初の人）だけが開始ボタンを押せる
+                document.getElementById('start-btn').style.display = (myId === playerIds[0]) ? 'block' : 'none';
             }
             if (status === 'setup') {
                 alreadyShownOutMsg = false;
@@ -360,10 +349,14 @@
                         createKeyboard('setup-kb', (c) => { if (currentInput.length < 8) { currentInput += c; document.getElementById('setup-word-view').innerText = currentInput; } });
                     }
                 }
-                const allReady = playerIds.length >= 2 && playerIds.every(id => players[id].isReady);
+                const pIds = Object.keys(players);
+                const allReady = pIds.length >= 2 && pIds.every(id => players[id].isReady);
                 if (allReady) { 
                     db.ref(`rooms/${roomId}/config`).update({ status: 'playing' }); 
-                    if (!data.turn) db.ref(`rooms/${roomId}`).update({ turn: playerIds[0] }); 
+                    if (!data.turn) {
+                        const sortedIds = Object.keys(players).sort((a,b) => players[a].joinedAt - players[b].joinedAt);
+                        db.ref(`rooms/${roomId}`).update({ turn: sortedIds[0] }); 
+                    }
                 }
             }
             if (status === 'playing') { 
@@ -371,7 +364,7 @@
                 updateBattleUI(data); 
             }
             if (status === 'finished') { 
-                document.getElementById('reset-btn').style.display = 'block'; 
+                document.getElementById('reset-btn').style.display = (myId === Object.keys(players).sort((a,b) => players[a].joinedAt - players[b].joinedAt)[0]) ? 'block' : 'none'; 
                 const winnerId = Object.keys(players).find(id => !players[id].isOut);
                 document.getElementById('turn-msg').innerText = "Winner: " + (players[winnerId]?.name || "NONE");
             }
@@ -386,11 +379,12 @@
     function confirmSecretWord() { if (currentInput.length === 0) return; db.ref(`rooms/${roomId}/players/${myId}`).update({ word: currentInput, isReady: true }); currentInput = ""; }
     
     function updateBattleUI(data) {
-        const players = data.players; const playerIds = Object.keys(players);
+        const players = data.players; 
+        const sortedIds = Object.keys(players).sort((a,b) => players[a].joinedAt - players[b].joinedAt);
         document.getElementById('battle-genre').innerText = `お題: ${data.config.genre}`;
         const listDiv = document.getElementById('player-list'); listDiv.innerHTML = "";
         
-        playerIds.forEach(id => {
+        sortedIds.forEach(id => {
             const p = players[id]; const card = document.createElement('div');
             card.className = `player-card ${id === data.turn ? 'active-turn' : ''} ${p.isOut ? 'eliminated' : ''}`;
             const display = p.word.split("").map(c => (p.hits && p.hits.includes(c)) ? `<span style="color:var(--neon-pink)">${c}</span>` : (id === myId ? c : "？")).join("");
@@ -421,7 +415,7 @@
                 const newHits = data.players[id].hits ? [...new Set([...data.players[id].hits, char])] : [char];
                 const isOut = data.players[id].word.split("").every(c => newHits.includes(c));
                 db.ref(`rooms/${roomId}/players/${id}`).update({ hits: newHits, isOut: isOut });
-                if (isOut) showCelebration(data.players[id].name + " を撃破！");
+                if (isOut) db.ref(`rooms/${roomId}/actionLog`).set({ message: `${data.players[id].name}が脱落！`, timestamp: Date.now(), isCritical: true });
                 triggerShake();
             }
         });
@@ -440,6 +434,13 @@
         });
         updateTargetPreview();
         createKeyboard('expose-kb', (c) => { if (currentInput.length < 8) { currentInput += c; document.getElementById('expose-word-view').innerText = currentInput; } });
+        
+        // ★実況：あばこうとしていることを通知
+        db.ref(`rooms/${roomId}/actionLog`).set({ 
+            message: `${myName}が狙いを定めている...`, 
+            timestamp: Date.now(), 
+            isCritical: false 
+        });
     }
 
     function updateTargetPreview() {
@@ -456,24 +457,32 @@
         const snap = await db.ref(`rooms/${roomId}`).get();
         const data = snap.val();
         const target = data.players[targetId];
+        let resultMsg = "";
+        let isSuccess = false;
         
         if (target.word === currentInput) {
             db.ref(`rooms/${roomId}/players/${targetId}`).update({ isOut: true, hits: target.word.split("") });
-            showCelebration(target.name + "を暴いた！！");
+            resultMsg = `${myName}が${target.name}を暴いた！成功！`;
+            isSuccess = true;
         } else {
             db.ref(`rooms/${roomId}/players/${myId}`).update({ isOut: true });
-            showCelebration("失敗！！\n自爆脱落...", true);
+            resultMsg = `${myName}が失敗！自爆した...`;
+            isSuccess = false;
         }
+        
+        // ★実況：結果を通知
+        db.ref(`rooms/${roomId}/actionLog`).set({ message: resultMsg, timestamp: Date.now(), isCritical: true });
+        
         triggerShake();
         closeExposeModal();
         nextTurn(data, `[${currentInput}]`, 'hit');
     }
 
-    function showCelebration(msg, isFail = false) {
+    function showCelebration(msg, isCritical) {
         const overlay = document.getElementById('flash-overlay');
         const text = document.getElementById('flash-message');
         text.innerText = msg;
-        overlay.style.background = isFail ? "rgba(255, 0, 0, 0.75)" : "rgba(0, 255, 255, 0.75)";
+        overlay.style.background = isCritical ? "rgba(255, 0, 100, 0.7)" : "rgba(0, 200, 255, 0.5)";
         overlay.style.display = "flex";
         setTimeout(() => { overlay.style.display = "none"; }, 3000);
     }
@@ -482,7 +491,7 @@
     function backspace(type) { currentInput = currentInput.slice(0, -1); document.getElementById(type + '-word-view').innerText = currentInput; }
 
     function nextTurn(data, char, result) {
-        const ids = Object.keys(data.players);
+        const ids = Object.keys(data.players).sort((a,b) => data.players[a].joinedAt - data.players[b].joinedAt);
         const aliveIds = ids.filter(id => !data.players[id].isOut);
         if (aliveIds.length <= 1) { 
             db.ref(`rooms/${roomId}/config`).update({ status: 'finished' }); 
@@ -512,6 +521,7 @@
         updates['config'] = { status: 'setup', genre: newGenre };
         updates['usedChars'] = null;
         updates['turn'] = null;
+        updates['actionLog'] = null;
         db.ref(`rooms/${roomId}`).update(updates);
     }
 </script>
