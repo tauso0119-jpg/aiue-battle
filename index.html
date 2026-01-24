@@ -130,10 +130,6 @@
             overflow-y: auto;
         }
         .modal-content { width: 100%; max-width: 450px; padding-top: 20px; }
-        input {
-            width: 100%; padding: 12px; background: #000; border: 1px solid var(--neon-cyan);
-            color: #fff; box-sizing: border-box; font-size: 1rem;
-        }
     </style>
 </head>
 <body id="main-body">
@@ -151,8 +147,8 @@
         <div id="login-create" class="screen">
             <div class="panel">
                 <h3>ルーム新規作成</h3>
-                <input type="text" id="create-name" placeholder="あなたの名前" maxlength="8">
-                <input type="text" id="create-room-id" placeholder="ルーム番号" style="margin-top:10px;">
+                <input type="text" id="create-name" placeholder="あなたの名前" maxlength="8" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--neon-cyan);">
+                <input type="text" id="create-room-id" placeholder="ルーム番号" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--neon-cyan); margin-top:10px;">
                 <button onclick="joinRoom('create')" style="margin-top:20px;">作成する</button>
                 <button onclick="location.reload()" style="border-color:#666; color:#666;">もどる</button>
             </div>
@@ -160,8 +156,8 @@
         <div id="login-join" class="screen">
             <div class="panel">
                 <h3>ルームに参加</h3>
-                <input type="text" id="join-name" placeholder="あなたの名前" maxlength="8">
-                <input type="text" id="join-room-id" placeholder="ルーム番号" style="margin-top:10px;">
+                <input type="text" id="join-name" placeholder="あなたの名前" maxlength="8" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--neon-cyan);">
+                <input type="text" id="join-room-id" placeholder="ルーム番号" style="width:100%; padding:10px; background:#000; color:#fff; border:1px solid var(--neon-cyan); margin-top:10px;">
                 <button onclick="joinRoom('join')" style="margin-top:20px;">参加する</button>
                 <button onclick="location.reload()" style="border-color:#666; color:#666;">もどる</button>
             </div>
@@ -191,7 +187,7 @@
                 </div>
             </div>
             <div id="setup-wait-msg" style="display:none; margin-top:20px;">
-                <h3 style="color:var(--neon-pink); animation: pulse 1s infinite alternate;">他のプレイヤーの入力待ち...</h3>
+                <h3 style="color:var(--neon-pink);">他のプレイヤーを待機中...</h3>
             </div>
         </div>
     </div>
@@ -203,7 +199,7 @@
         <div id="turn-msg" style="text-align:center; color:var(--neon-yellow); font-weight:bold; margin:10px 0;"></div>
         <div class="grid" id="attack-grid"></div>
         <button id="expose-open-btn" style="border-color:var(--neon-pink); color:var(--neon-pink); margin-top:15px;" onclick="openExposeModal()">ターゲットをあばく</button>
-        <button id="reset-btn" style="display:none; margin-top:15px;" onclick="resetGame()">リスタート</button>
+        <button id="reset-btn" style="display:none; margin-top:15px;" onclick="resetToSetup()">次のゲームへ！</button>
     </div>
 </div>
 
@@ -226,6 +222,7 @@
 </div>
 
 <script>
+    // --- Firebase設定 ---
     const firebaseConfig = {
       apiKey: "AIzaSyBpVZkp8eaTwyove6n3i9SE0asIUbYKmjY",
       authDomain: "aiue-battle-online.firebaseapp.com",
@@ -301,7 +298,6 @@
             const playerIds = Object.keys(players);
             const status = data.config?.status || 'waiting';
 
-            // ★自分が脱落した瞬間の特大演出
             if (players[myId] && players[myId].isOut && !alreadyShownOutMsg) {
                 showCelebration("あばかれた！\n敗北...", true);
                 alreadyShownOutMsg = true;
@@ -315,10 +311,9 @@
                 playerIds.forEach(id => { const li = document.createElement('li'); li.innerText = `準備中: ${players[id].name}`; list.appendChild(li); });
             }
             if (status === 'setup') {
+                alreadyShownOutMsg = false;
                 showScreen('setup-screen');
                 document.getElementById('genre-display').innerText = `お題: ${data.config.genre}`;
-                
-                // 待機中表示の制御
                 if (players[myId]?.isReady) {
                     document.getElementById('setup-controls').style.display = 'none';
                     document.getElementById('setup-wait-msg').style.display = 'block';
@@ -329,7 +324,6 @@
                         createKeyboard('setup-kb', (c) => { if (currentInput.length < 8) { currentInput += c; document.getElementById('setup-word-view').innerText = currentInput; } });
                     }
                 }
-
                 const allReady = playerIds.length >= 2 && playerIds.every(id => players[id].isReady);
                 if (allReady) { 
                     db.ref(`rooms/${roomId}/config`).update({ status: 'playing' }); 
@@ -353,11 +347,7 @@
         db.ref(`rooms/${roomId}/config`).set({ status: 'setup', genre: newGenre });
     }
 
-    function confirmSecretWord() { 
-        if (currentInput.length === 0) return; 
-        db.ref(`rooms/${roomId}/players/${myId}`).update({ word: currentInput, isReady: true }); 
-        currentInput = ""; 
-    }
+    function confirmSecretWord() { if (currentInput.length === 0) return; db.ref(`rooms/${roomId}/players/${myId}`).update({ word: currentInput, isReady: true }); currentInput = ""; }
     
     function updateBattleUI(data) {
         const players = data.players; const playerIds = Object.keys(players);
@@ -456,32 +446,42 @@
     function nextTurn(data, char, result) {
         const ids = Object.keys(data.players);
         const aliveIds = ids.filter(id => !data.players[id].isOut);
+        
+        // ★フリーズ防止: 生存者が1人以下なら即終了
         if (aliveIds.length <= 1) { 
             db.ref(`rooms/${roomId}/config`).update({ status: 'finished' }); 
             return; 
         }
 
-        // 脱落者を自動除外して順番を回す
-        let currentIdx = ids.indexOf(data.turn);
-        let nextIdx = (currentIdx + 1) % ids.length;
-        
-        while (data.players[ids[nextIdx]].isOut) {
+        let nextIdx = (ids.indexOf(data.turn) + 1) % ids.length;
+        // ★無限ループ防止付きスキップロジック
+        let safetyCounter = 0;
+        while (data.players[ids[nextIdx]].isOut && safetyCounter < ids.length) {
             nextIdx = (nextIdx + 1) % ids.length;
+            safetyCounter++;
         }
-        
         db.ref(`rooms/${roomId}`).update({ turn: ids[nextIdx], [`usedChars/${char}`]: result });
     }
 
     function triggerShake() { const b = document.getElementById('main-body'); b.classList.add('shake'); setTimeout(() => b.classList.remove('shake'), 400); }
     
-    function resetGame() {
-        alreadyShownOutMsg = false;
-        db.ref(`rooms/${roomId}`).get().then(snap => {
-            const players = snap.val().players; const updates = {};
-            Object.keys(players).forEach(id => { updates[`players/${id}/isReady`] = false; updates[`players/${id}/isOut`] = false; updates[`players/${id}/hits`] = []; updates[`players/${id}/word`] = ""; });
-            updates['config'] = { status: 'waiting', genre: '---' }; updates['usedChars'] = null; updates['turn'] = null;
-            db.ref(`rooms/${roomId}`).update(updates); currentInput = "";
+    // ★リスタート機能を強化
+    function resetToSetup() {
+        const newGenre = genres[Math.floor(Math.random() * genres.length)];
+        const players = roomDataGlobal.players;
+        const updates = {};
+        Object.keys(players).forEach(id => {
+            updates[`players/${id}/isReady`] = false;
+            updates[`players/${id}/isOut`] = false;
+            updates[`players/${id}/hits`] = [];
+            updates[`players/${id}/word`] = "";
         });
+        updates['config'] = { status: 'setup', genre: newGenre };
+        updates['usedChars'] = null;
+        updates['turn'] = null;
+        db.ref(`rooms/${roomId}`).update(updates);
+        currentInput = "";
+        document.getElementById('setup-kb').innerHTML = "";
     }
 </script>
 </body>
